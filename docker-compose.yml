@@ -11,13 +11,19 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   app:
     build: .
     container_name: pro-app-1
     restart: always
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
     ports:
@@ -25,7 +31,14 @@ services:
     volumes:
       - /var/www/iarko/uploads:/app/uploads
 
-    command: sh -c "npx prisma db push && npm run start"
+    command: >
+      sh -c "
+      echo '⏳ waiting for postgres...' &&
+      until nc -z postgres 5432; do sleep 1; done &&
+      echo '✅ postgres ready' &&
+      npx prisma migrate deploy &&
+      npm run start
+      "
 
 volumes:
   postgres_data:

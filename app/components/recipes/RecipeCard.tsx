@@ -1,127 +1,113 @@
 "use client";
 
+import { useState } from "react";
 import type { Recipe } from "@/types/recipe";
 
 type Props = {
   recipe: Recipe;
   isOpen: boolean;
-  onToggle: () => void;
-  onDelete: (id: string) => void;
+  setOpen: () => void;
   onEdit: (recipe: Recipe) => void;
 };
 
 export default function RecipeCard({
   recipe,
   isOpen,
-  onToggle,
-  onDelete,
+  setOpen,
   onEdit,
 }: Props) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div
-      onClick={onToggle}
-      className="bg-zinc-900 border border-white/10 rounded-xl overflow-hidden cursor-pointer transition hover:scale-[1.01]"
+      onClick={setOpen}
+      className="
+        origin-top
+        scale-[0.78]
+        hover:scale-[0.80]
+        transition-transform
+        duration-200
+
+        rounded-xl
+        border border-white/10
+        bg-zinc-950/60
+        hover:bg-zinc-950
+
+        cursor-pointer
+        overflow-hidden
+      "
     >
-      {/* PREVIEW MODE */}
-      {!isOpen && (
-        <div className="space-y-2">
-          {recipe.imageUrl && (
-            <div className="h-40 w-full overflow-hidden">
-              <img
-                src={recipe.imageUrl}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
 
-          <div className="p-3 space-y-1">
-            <h2 className="text-white font-semibold">
-              {recipe.title}
-            </h2>
+      {/* HEADER */}
+      <div className="flex items-center justify-between px-4 py-3">
+        <h3 className="text-base font-medium">
+          {recipe.title}
+        </h3>
 
-            {recipe.description && (
-              <p className="text-white/60 text-sm line-clamp-2">
-                {recipe.description}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
+        <div className="relative">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen((s) => !s);
+            }}
+            className="text-white/40 hover:text-white"
+          >
+            ⚙
+          </button>
 
-      {/* EXPANDED MODE */}
-      {isOpen && (
-        <div className="p-4 space-y-3">
-          {/* HEADER */}
-          <div className="flex justify-between items-center">
-            <h2 className="text-white font-semibold">
-              {recipe.title}
-            </h2>
-
-            <div className="flex gap-2">
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-32 bg-zinc-900 border border-white/10 rounded-lg text-sm">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onEdit(recipe);
+                  setMenuOpen(false);
                 }}
-                className="text-xs bg-blue-600 px-2 py-1 rounded"
+                className="w-full text-left px-3 py-2 hover:bg-white/5"
               >
                 Edit
               </button>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(recipe.id);
-                }}
-                className="text-xs bg-red-600 px-2 py-1 rounded"
-              >
-                Delete
-              </button>
             </div>
-          </div>
-
-          {recipe.imageUrl && (
-            <img
-              src={recipe.imageUrl}
-              className="w-full h-48 object-cover rounded-lg"
-            />
           )}
+        </div>
+      </div>
 
-          {recipe.description && (
-            <p className="text-white/60 text-sm">
-              {recipe.description}
-            </p>
-          )}
-
-          {/* STEPS RENDER */}
-          <div className="pt-2 space-y-2">
-            <h3 className="text-white/50 text-sm">Steps</h3>
-
-            {recipe.steps?.length ? (
-              recipe.steps.map((s) => (
-                <div key={s.id} className="space-y-2">
-                  <div className="text-white/80 text-sm">
-                    • {s.text}
-                  </div>
-
-                  {s.image && (
-                    <div className="h-28 overflow-hidden rounded-md">
-                      <img
-                        src={s.image}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="text-white/30 text-sm">
-                No steps
-              </div>
-            )}
-          </div>
+      {/* IMAGE */}
+      {recipe.imageUrl && (
+        <div className="px-4">
+          <img
+            src={recipe.imageUrl}
+            className="w-full h-40 object-cover rounded-lg"
+          />
         </div>
       )}
+
+      {/* DESCRIPTION */}
+      <div className="px-4 py-3 text-sm text-white/70">
+        {recipe.description}
+      </div>
+
+      {/* STEPS */}
+      {isOpen && (
+        <div className="px-4 pb-4 grid gap-3">
+          {recipe.steps?.map((step, i) => (
+            <div
+              key={i}
+              className="border border-white/10 rounded-lg p-3 bg-zinc-900/40"
+            >
+              <div className="text-sm">{step.text}</div>
+
+              {step.imageUrl && (
+                <img
+                  src={step.imageUrl}
+                  className="mt-2 w-full h-32 object-cover rounded-md"
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
     </div>
   );
 }

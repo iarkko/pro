@@ -1,15 +1,12 @@
 export type RecipeStep = {
-  id: string;
   text: string;
-  image?: string | null;
+  imageUrl?: string;
 };
 
 export type Recipe = {
   id: string;
   title: string;
-  description?: string | null;
-  imageUrl?: string | null;
+  description: string;
+  imageUrl?: string;
   steps: RecipeStep[];
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
 };

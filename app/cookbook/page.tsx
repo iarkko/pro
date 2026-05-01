@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   getRecipes,
   updateRecipe,
@@ -11,7 +11,7 @@ import RecipeList from "@/app/components/recipes/RecipeList";
 import CreateRecipeForm from "@/app/components/recipes/CreateRecipeForm";
 import type { Recipe } from "@/types/recipe";
 
-export default function CookbookPage() {
+export default function Page() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -34,18 +34,24 @@ export default function CookbookPage() {
     setRecipes((prev) => [recipe, ...prev]);
   };
 
-  const handleDelete = async (id: string) => {
-    await deleteRecipe(id);
-    setRecipes((prev) => prev.filter((r) => r.id !== id));
-    if (openId === id) setOpenId(null);
-  };
-
   const handleUpdate = async (id: string, data: Partial<Recipe>) => {
     const updated = await updateRecipe(id, data);
 
     setRecipes((prev) =>
       prev.map((r) => (r.id === id ? updated : r))
     );
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteRecipe(id);
+    setRecipes((prev) => prev.filter((r) => r.id !== id));
+
+    if (openId === id) setOpenId(null);
+  };
+
+  const handleEdit = (recipe: Recipe) => {
+    setEditingRecipe(recipe);
+    setIsFormOpen(true);
   };
 
   const filtered = useMemo(() => {
@@ -59,23 +65,23 @@ export default function CookbookPage() {
   }, [recipes, query]);
 
   return (
-    <div className="min-h-screen text-white relative">
+    <div className="min-h-screen text-white">
 
       {/* HEADER */}
       <div className="pt-24 px-6 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-semibold">Рецепты</h1>
+          <h1 className="text-2xl font-semibold">Recipes</h1>
           <p className="text-white/40 text-sm">
             {filtered.length} items
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex gap-4 items-center">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search..."
-            className="px-4 py-2 rounded-xl bg-zinc-950 border border-white/10 text-white text-sm"
+            className="px-4 py-2 rounded-xl bg-zinc-950 border border-white/10"
           />
 
           <button
@@ -90,16 +96,8 @@ export default function CookbookPage() {
         </div>
       </div>
 
-      {/* BACKDROP (Notion-style focus exit) */}
-      {openId && (
-        <div
-          onClick={() => setOpenId(null)}
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-10"
-        />
-      )}
-
       {/* LIST */}
-      <div className="px-6 mt-8 relative z-20">
+      <div className="px-6 mt-8">
         {loading ? (
           <p className="text-white/40">Loading...</p>
         ) : (
@@ -107,11 +105,7 @@ export default function CookbookPage() {
             recipes={filtered}
             openId={openId}
             setOpenId={setOpenId}
-            onDelete={handleDelete}
-            onEdit={(r) => {
-              setEditingRecipe(r);
-              setIsFormOpen(true);
-            }}
+            onEdit={handleEdit}
           />
         )}
       </div>
@@ -119,13 +113,14 @@ export default function CookbookPage() {
       {/* MODAL */}
       {isFormOpen && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="w-full max-w-lg bg-zinc-950 border border-white/10 rounded-2xl p-5">
+          <div className="w-full max-w-lg bg-zinc-950 border border-white/10 rounded-2xl p-5 relative">
+
             <button
               onClick={() => {
                 setIsFormOpen(false);
                 setEditingRecipe(null);
               }}
-              className="text-white/40 mb-3"
+              className="absolute top-3 right-3 text-white/40"
             >
               ✕
             </button>
@@ -143,6 +138,7 @@ export default function CookbookPage() {
                 setEditingRecipe(null);
               }}
             />
+
           </div>
         </div>
       )}

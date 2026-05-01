@@ -22,12 +22,9 @@ export default function Page() {
 
   useEffect(() => {
     const load = async () => {
-      try {
-        const data = await getRecipes();
-        setRecipes(data ?? []);
-      } finally {
-        setLoading(false);
-      }
+      const data = await getRecipes();
+      setRecipes(data ?? []);
+      setLoading(false);
     };
 
     load();
@@ -37,19 +34,19 @@ export default function Page() {
     setRecipes((prev) => [recipe, ...prev]);
   };
 
-  const handleDelete = async (id: string) => {
-    await deleteRecipe(id);
-    setRecipes((prev) => prev.filter((r) => r.id !== id));
-
-    if (openId === id) setOpenId(null);
-  };
-
   const handleUpdate = async (id: string, data: Partial<Recipe>) => {
     const updated = await updateRecipe(id, data);
 
     setRecipes((prev) =>
       prev.map((r) => (r.id === id ? updated : r))
     );
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteRecipe(id);
+    setRecipes((prev) => prev.filter((r) => r.id !== id));
+
+    if (openId === id) setOpenId(null);
   };
 
   const handleEdit = (recipe: Recipe) => {
@@ -74,9 +71,7 @@ export default function Page() {
       <div className="pt-24 px-6 flex justify-between items-center">
 
         <div>
-          <h1 className="text-2xl font-semibold">
-            Рецепты
-          </h1>
+          <h1 className="text-2xl font-semibold">Recipes</h1>
           <p className="text-white/40 text-sm">
             {filtered.length} items
           </p>
@@ -87,8 +82,8 @@ export default function Page() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search recipes..."
-            className="w-[280px] px-4 py-2 rounded-xl bg-zinc-950/80 border border-white/10 text-white text-sm"
+            placeholder="Search..."
+            className="w-[280px] px-4 py-2 rounded-xl bg-zinc-950/80 border border-white/10 text-sm"
           />
 
           <button
@@ -113,7 +108,6 @@ export default function Page() {
             recipes={filtered}
             openId={openId}
             setOpenId={setOpenId}
-            onDelete={handleDelete}
             onEdit={handleEdit}
           />
         )}
