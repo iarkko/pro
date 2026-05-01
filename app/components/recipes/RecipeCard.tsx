@@ -1,121 +1,127 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import type { Recipe } from "@/types/recipe";
 
 type Props = {
   recipe: Recipe;
   isOpen: boolean;
-  setOpen: () => void;
-  onDeleteAction: (id: string) => Promise<void>;
-  onEditAction: (recipe: Recipe) => void;
+  onToggle: () => void;
+  onDelete: (id: string) => void;
+  onEdit: (recipe: Recipe) => void;
 };
 
 export default function RecipeCard({
   recipe,
   isOpen,
-  setOpen,
-  onDeleteAction,
-  onEditAction,
+  onToggle,
+  onDelete,
+  onEdit,
 }: Props) {
-  const [confirm, setConfirm] = useState(false);
-
   return (
-    <motion.div
-      layout
-      onClick={setOpen}
-      className="
-        rounded-2xl overflow-hidden
-        border border-white/10
-        bg-zinc-950/60
-        cursor-pointer
-      "
+    <div
+      onClick={onToggle}
+      className="bg-zinc-900 border border-white/10 rounded-xl overflow-hidden cursor-pointer transition hover:scale-[1.01]"
     >
-      {/* IMAGE */}
-      {recipe.imageUrl && (
-        <img
-          src={recipe.imageUrl}
-          className="w-full h-44 object-cover"
-        />
+      {/* PREVIEW MODE */}
+      {!isOpen && (
+        <div className="space-y-2">
+          {recipe.imageUrl && (
+            <div className="h-40 w-full overflow-hidden">
+              <img
+                src={recipe.imageUrl}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+
+          <div className="p-3 space-y-1">
+            <h2 className="text-white font-semibold">
+              {recipe.title}
+            </h2>
+
+            {recipe.description && (
+              <p className="text-white/60 text-sm line-clamp-2">
+                {recipe.description}
+              </p>
+            )}
+          </div>
+        </div>
       )}
 
-      <div className="p-3">
-        <h3 className="text-white">{recipe.title}</h3>
-        <p className="text-white/40 text-sm">
-          {recipe.description}
-        </p>
+      {/* EXPANDED MODE */}
+      {isOpen && (
+        <div className="p-4 space-y-3">
+          {/* HEADER */}
+          <div className="flex justify-between items-center">
+            <h2 className="text-white font-semibold">
+              {recipe.title}
+            </h2>
 
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="mt-3 space-y-2 overflow-hidden"
-            >
-              <div className="text-white/70 text-sm space-y-1">
-                {recipe.steps?.length ? (
-                  recipe.steps.map((s, i) => (
-                    <div key={i}>• {s}</div>
-                  ))
-                ) : (
-                  <div className="text-white/30">
-                    No steps
-                  </div>
-                )}
-              </div>
+            <div className="flex gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(recipe);
+                }}
+                className="text-xs bg-blue-600 px-2 py-1 rounded"
+              >
+                Edit
+              </button>
 
-              <div className="flex justify-between pt-2 text-sm">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEditAction(recipe);
-                  }}
-                  className="text-blue-400"
-                >
-                  Edit
-                </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(recipe.id);
+                }}
+                className="text-xs bg-red-600 px-2 py-1 rounded"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
 
-                {!confirm ? (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConfirm(true);
-                    }}
-                    className="text-red-400"
-                  >
-                    Delete
-                  </button>
-                ) : (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        await onDeleteAction(recipe.id);
-                      }}
-                      className="text-red-400"
-                    >
-                      Yes
-                    </button>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setConfirm(false);
-                      }}
-                      className="text-white/40"
-                    >
-                      No
-                    </button>
-                  </div>
-                )}
-              </div>
-            </motion.div>
+          {recipe.imageUrl && (
+            <img
+              src={recipe.imageUrl}
+              className="w-full h-48 object-cover rounded-lg"
+            />
           )}
-        </AnimatePresence>
-      </div>
-    </motion.div>
+
+          {recipe.description && (
+            <p className="text-white/60 text-sm">
+              {recipe.description}
+            </p>
+          )}
+
+          {/* STEPS RENDER */}
+          <div className="pt-2 space-y-2">
+            <h3 className="text-white/50 text-sm">Steps</h3>
+
+            {recipe.steps?.length ? (
+              recipe.steps.map((s) => (
+                <div key={s.id} className="space-y-2">
+                  <div className="text-white/80 text-sm">
+                    • {s.text}
+                  </div>
+
+                  {s.image && (
+                    <div className="h-28 overflow-hidden rounded-md">
+                      <img
+                        src={s.image}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="text-white/30 text-sm">
+                No steps
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

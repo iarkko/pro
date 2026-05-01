@@ -5,7 +5,7 @@ export async function getRecipes(): Promise<Recipe[]> {
   return res.json();
 }
 
-export async function createRecipe(data: Omit<Recipe, "id">): Promise<Recipe> {
+export async function createRecipe(data: Partial<Recipe>) {
   const res = await fetch("/api/recipes", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -15,11 +15,8 @@ export async function createRecipe(data: Omit<Recipe, "id">): Promise<Recipe> {
   return res.json();
 }
 
-export async function updateRecipe(
-  id: string,
-  data: Partial<Recipe>
-): Promise<Recipe> {
-  const res = await fetch(`/api/recipes/${id}`, {
+export async function updateRecipe(id: string, data: Partial<Recipe>) {
+  const res = await fetch(`/api/recipes?id=${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -28,8 +25,8 @@ export async function updateRecipe(
   return res.json();
 }
 
-export async function deleteRecipe(id: string): Promise<void> {
-  await fetch(`/api/recipes/${id}`, {
+export async function deleteRecipe(id: string) {
+  await fetch(`/api/recipes?id=${id}`, {
     method: "DELETE",
   });
 }

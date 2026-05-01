@@ -24,8 +24,9 @@ model Recipe {
   title       String
   description String?
 
-  imageUrl    String?   // ← ВАЖНО FIX
-  steps       String[]
+  imageUrl    String?
+
+  steps       Json
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
