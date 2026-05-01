@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: pro-postgres-1
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: pro-app-1
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+    ports:
+      - "3000:3000"
+    volumes:
+      - /var/www/iarko/uploads:/app/uploads
+
+    command: sh -c "npx prisma db push && npm run start"
+
+volumes:
+  postgres_data:
