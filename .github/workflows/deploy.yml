@@ -26,19 +26,28 @@ jobs:
 
             cd /root/pro
 
-            echo "📦 Pulling latest code..."
+            echo "📥 Pull latest code..."
             git pull origin main
 
-            echo "🧹 Rebuilding containers..."
-            docker compose down
+            echo "🔨 Build containers..."
             docker compose build --no-cache
+
+            echo "🚀 Start services..."
             docker compose up -d
 
-            echo "⏳ Waiting for DB to be ready..."
-            sleep 10
+            echo "⏳ Waiting for PostgreSQL..."
+            until docker compose exec -T postgres pg_isready -U postgres; do
+              sleep 2
+            done
+
+            echo "⏳ Waiting for app container..."
+            sleep 5
 
             echo "🧬 Running Prisma migrations..."
             docker compose exec -T app npx prisma migrate deploy
 
-            echo "✅ Deployment finished"
+            echo "🧹 Cleaning unused images..."
+            docker image prune -f
+
+            echo "✅ Deployment successful"
           EOF
