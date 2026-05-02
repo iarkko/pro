@@ -21,24 +21,22 @@ services:
     build: .
     container_name: pro-app-1
     restart: always
+
     depends_on:
       postgres:
         condition: service_healthy
+
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+
     ports:
       - "3000:3000"
+
     volumes:
       - /var/www/iarko/uploads:/app/uploads
 
-    command: >
-      sh -c "
-      echo '⏳ waiting for postgres...' &&
-      until nc -z postgres 5432; do sleep 1; done &&
-      echo '✅ postgres ready' &&
-      npx prisma migrate deploy &&
-      npm run start
-      "
+    # ✅ ВАЖНО: убрали sleep и inline command
+    command: sh ./docker-entrypoint.sh
 
 volumes:
   postgres_data:
