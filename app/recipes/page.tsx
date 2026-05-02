@@ -13,7 +13,7 @@ type Recipe = {
   title: string;
   description: string;
   imageUrl: string;
-  steps: string[]; // backend compatible
+  steps: string[];
 };
 
 function uid() {
@@ -22,18 +22,18 @@ function uid() {
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
   const [openForm, setOpenForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [uploadingMain, setUploadingMain] = useState(false);
 
   const [form, setForm] = useState<{
-    id: string;
     title: string;
     description: string;
     imageUrl: string;
     steps: Step[];
   }>({
-    id: "",
     title: "",
     description: "",
     imageUrl: "",
@@ -41,48 +41,25 @@ export default function RecipesPage() {
   });
 
   async function load() {
-    const res = await fetch("/api/recipes");
-    const data = await res.json();
-    setRecipes(data);
+    try {
+      setLoading(true);
+      setError(false);
+
+      const res = await fetch("/api/recipes");
+      if (!res.ok) throw new Error("API failed");
+
+      const data = await res.json();
+      setRecipes(Array.isArray(data) ? data : []);
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     load();
   }, []);
-
-  async function save() {
-    const payload = {
-      ...form,
-      steps: form.steps.map((s) => s.text),
-    };
-
-    if (editingId) {
-      await fetch(`/api/recipes/${editingId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    } else {
-      await fetch("/api/recipes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    }
-
-    setOpenForm(false);
-    setEditingId(null);
-
-    setForm({
-      id: "",
-      title: "",
-      description: "",
-      imageUrl: "",
-      steps: [{ id: uid(), text: "" }],
-    });
-
-    load();
-  }
 
   async function handleUpload(file: File, type: "main" | "step", stepId?: string) {
     const fd = new FormData();
@@ -97,7 +74,9 @@ export default function RecipesPage() {
 
     if (type === "main") {
       setForm((p) => ({ ...p, imageUrl: data.url }));
-    } else if (type === "step" && stepId) {
+    }
+
+    if (type === "step" && stepId) {
       setForm((p) => ({
         ...p,
         steps: p.steps.map((s) =>
@@ -107,16 +86,32 @@ export default function RecipesPage() {
     }
   }
 
-  function onDropMain(e: React.DragEvent) {
-    e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file) handleUpload(file, "main");
-  }
+  async function save() {
+    const payload = {
+      ...form,
+      steps: form.steps.map((s) => s.text),
+    };
 
-  function onDropStep(e: React.DragEvent, stepId: string) {
-    e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file) handleUpload(file, "step", stepId);
+    await fetch(
+      editingId ? `/api/recipes/${editingId}` : "/api/recipes",
+      {
+        method: editingId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    setOpenForm(false);
+    setEditingId(null);
+
+    setForm({
+      title: "",
+      description: "",
+      imageUrl: "",
+      steps: [{ id: uid(), text: "" }],
+    });
+
+    load();
   }
 
   function addStep() {
@@ -129,7 +124,9 @@ export default function RecipesPage() {
   function updateStep(id: string, value: string) {
     setForm((p) => ({
       ...p,
-      steps: p.steps.map((s) => (s.id === id ? { ...s, text: value } : s)),
+      steps: p.steps.map((s) =>
+        s.id === id ? { ...s, text: value } : s
+      ),
     }));
   }
 
@@ -138,13 +135,6 @@ export default function RecipesPage() {
       ...p,
       steps: p.steps.filter((s) => s.id !== id),
     }));
-  }
-
-  function moveStep(from: number, to: number) {
-    const steps = [...form.steps];
-    const [moved] = steps.splice(from, 1);
-    steps.splice(to, 0, moved);
-    setForm((p) => ({ ...p, steps }));
   }
 
   return (
@@ -161,116 +151,138 @@ export default function RecipesPage() {
         </button>
       </div>
 
-      {openForm && (
-        <div className="p-6 bg-white/5 rounded-xl space-y-4">
+      {loading && <div>Loading...</div>}
+      {error && <div className="text-red-400">Failed to load recipes</div>}
 
-          <input
-            placeholder="Title"
-            className="w-full p-2 bg-black/30 rounded"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-          />
-
-          <input
-            placeholder="Description"
-            className="w-full p-2 bg-black/30 rounded"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-          />
-
-          {/* MAIN IMAGE DROP */}
-          <div
-            onDrop={onDropMain}
-            onDragOver={(e) => e.preventDefault()}
-            className="h-40 border border-dashed border-white/20 rounded-lg flex items-center justify-center text-white/40"
-          >
-            {form.imageUrl ? "Main image uploaded" : "Drop main image here"}
-          </div>
-
-          {form.imageUrl && (
-            <img src={form.imageUrl} className="rounded-lg max-h-60" />
-          )}
-
-          {/* STEPS */}
-          <div className="space-y-2">
-
-            <div className="flex justify-between">
-              <p>Steps</p>
-              <button onClick={addStep}>+ step</button>
+      {!loading && !error && (
+        <div className="grid grid-cols-3 gap-6">
+          {recipes.map((r) => (
+            <div key={r.id} className="p-4 bg-white/5 rounded-xl space-y-2">
+              {r.imageUrl && (
+                <img src={r.imageUrl} className="rounded-lg" />
+              )}
+              <h3 className="font-bold">{r.title}</h3>
+              <p className="text-sm text-white/60">{r.description}</p>
             </div>
-
-            <div className={`grid gap-2 ${form.steps.length > 4 ? "grid-cols-2" : "grid-cols-1"}`}>
-
-              {form.steps.map((step, i) => (
-                <div
-                  key={step.id}
-                  className="p-2 bg-black/30 rounded space-y-2"
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    const from = Number(e.dataTransfer.getData("from"));
-                    moveStep(from, i);
-                  }}
-                >
-
-                  <div className="flex items-center gap-2">
-
-                    <div
-                      draggable
-                      onDragStart={(e) =>
-                        e.dataTransfer.setData("from", i.toString())
-                      }
-                      className="cursor-grab text-white/40"
-                    >
-                      ⋮⋮
-                    </div>
-
-                    <input
-                      value={step.text}
-                      onChange={(e) => updateStep(step.id, e.target.value)}
-                      className="w-full bg-transparent outline-none"
-                    />
-
-                    <button
-                      onClick={() => removeStep(step.id)}
-                      className="w-2 h-2 bg-red-500 rounded-full"
-                    />
-                  </div>
-
-                  {/* STEP IMAGE DROP */}
-                  <div
-                    onDrop={(e) => onDropStep(e, step.id)}
-                    onDragOver={(e) => e.preventDefault()}
-                    className="h-24 border border-dashed border-white/10 rounded flex items-center justify-center text-white/30 text-xs"
-                  >
-                    {step.imageUrl ? "image added" : "drop step image"}
-                  </div>
-
-                  {step.imageUrl && (
-                    <img src={step.imageUrl} className="rounded" />
-                  )}
-
-                </div>
-              ))}
-
-            </div>
-          </div>
-
-          <button onClick={save} className="px-4 py-2 bg-green-600 rounded">
-            Save
-          </button>
+          ))}
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-6">
-        {recipes.map((r) => (
-          <div key={r.id} className="p-4 bg-white/5 rounded-xl">
-            {r.imageUrl && <img src={r.imageUrl} className="rounded-lg" />}
-            <h3 className="font-bold">{r.title}</h3>
-            <p className="text-sm text-white/60">{r.description}</p>
-          </div>
-        ))}
-      </div>
+      {openForm && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-6">
+          <div className="w-full max-w-3xl bg-[#0B1020] rounded-2xl p-6 space-y-6">
 
+            <h2 className="text-xl font-bold">
+              {editingId ? "Edit recipe" : "New recipe"}
+            </h2>
+
+            <input
+              className="w-full p-2 bg-black/40 rounded"
+              placeholder="Title"
+              value={form.title}
+              onChange={(e) =>
+                setForm({ ...form, title: e.target.value })
+              }
+            />
+
+            <input
+              className="w-full p-2 bg-black/40 rounded"
+              placeholder="Description"
+              value={form.description}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
+            />
+
+            <label className="block border border-dashed border-white/20 rounded-lg p-6 text-center cursor-pointer">
+              <input
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleUpload(file, "main");
+                }}
+              />
+
+              {form.imageUrl ? (
+                <img src={form.imageUrl} className="max-h-40 mx-auto" />
+              ) : (
+                <p className="text-white/40">
+                  Drag & drop or click image
+                </p>
+              )}
+            </label>
+
+            {/* STEPS */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <p className="font-medium">Steps</p>
+                <button onClick={addStep}>+ step</button>
+              </div>
+
+              {form.steps.map((step) => (
+                <div
+                  key={step.id}
+                  className="grid grid-cols-[1fr_140px] gap-3 items-start p-3 bg-black/30 rounded-lg"
+                >
+                  {/* TEXT */}
+                  <textarea
+                    className="w-full min-h-[80px] p-2 bg-black/40 rounded resize-none"
+                    value={step.text}
+                    onChange={(e) =>
+                      updateStep(step.id, e.target.value)
+                    }
+                    placeholder="Step description..."
+                  />
+
+                  {/* IMAGE BLOCK */}
+                  <div className="relative h-[80px]">
+                    <label className="h-full w-full border border-dashed border-white/20 rounded flex items-center justify-center text-xs text-white/50 cursor-pointer overflow-hidden">
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleUpload(file, "step", step.id);
+                        }}
+                      />
+
+                      {step.imageUrl ? (
+                        <img
+                          src={step.imageUrl}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        "drop image"
+                      )}
+                    </label>
+
+                    {/* DELETE BUTTON — FIXED */}
+                    <button
+                      onClick={() => removeStep(step.id)}
+                      className="absolute top-1 right-1 w-[11px] h-[11px] bg-red-500 rounded-full hover:scale-110 transition"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setOpenForm(false)}>
+                Cancel
+              </button>
+
+              <button
+                onClick={save}
+                className="bg-green-600 px-4 py-2 rounded"
+              >
+                Save
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }

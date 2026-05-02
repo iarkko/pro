@@ -1,8 +1,13 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/app/lib/prisma";
 
 export const RecipeService = {
   async getAll() {
     return prisma.recipe.findMany({
+      include: {
+        steps: {
+          orderBy: { stepOrder: "asc" },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
   },
@@ -10,6 +15,11 @@ export const RecipeService = {
   async getById(id: string) {
     return prisma.recipe.findUnique({
       where: { id },
+      include: {
+        steps: {
+          orderBy: { stepOrder: "asc" },
+        },
+      },
     });
   },
 
@@ -17,14 +27,26 @@ export const RecipeService = {
     title: string;
     description?: string;
     imageUrl?: string;
-    steps?: string[];
+    steps?: { text: string; imageUrl?: string }[];
   }) {
     return prisma.recipe.create({
       data: {
         title: data.title,
         description: data.description ?? null,
-        imageUrl: data.imageUrl ?? "",
-        steps: data.steps ?? [],
+        imageUrl: data.imageUrl ?? null,
+
+        steps: {
+          create: (data.steps ?? []).map((s, index) => ({
+            text: s.text,
+            imageUrl: s.imageUrl ?? null,
+            stepOrder: index,
+          })),
+        },
+      },
+      include: {
+        steps: {
+          orderBy: { stepOrder: "asc" },
+        },
       },
     });
   },
@@ -35,14 +57,34 @@ export const RecipeService = {
       title?: string;
       description?: string;
       imageUrl?: string;
-      steps?: string[];
+      steps?: { id?: string; text: string; imageUrl?: string }[];
     }
   ) {
     return prisma.recipe.update({
       where: { id },
+
       data: {
-        ...data,
+        title: data.title,
         description: data.description ?? undefined,
+        imageUrl: data.imageUrl ?? undefined,
+
+        steps: data.steps
+          ? {
+              deleteMany: {},
+
+              create: data.steps.map((s, index) => ({
+                text: s.text,
+                imageUrl: s.imageUrl ?? null,
+                stepOrder: index,
+              })),
+            }
+          : undefined,
+      },
+
+      include: {
+        steps: {
+          orderBy: { stepOrder: "asc" },
+        },
       },
     });
   },

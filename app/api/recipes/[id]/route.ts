@@ -1,29 +1,28 @@
-import { PrismaClient } from "@prisma/client";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/app/lib/prisma";
 
-const prisma = new PrismaClient();
+type Context = {
+  params: Promise<{ id: string }>;
+};
 
-// GET
-export async function GET(
-  req: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: NextRequest, context: Context) {
   const { id } = await context.params;
 
   const recipe = await prisma.recipe.findUnique({
     where: { id },
+    include: { steps: true },
   });
 
-  return Response.json(recipe);
+  return NextResponse.json(recipe);
 }
 
-// UPDATE
-export async function PUT(
-  req: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function PUT(req: NextRequest, context: Context) {
   const { id } = await context.params;
   const body = await req.json();
+
+  await prisma.step.deleteMany({
+    where: { recipeId: id },
+  });
 
   const updated = await prisma.recipe.update({
     where: { id },
@@ -31,23 +30,25 @@ export async function PUT(
       title: body.title,
       description: body.description,
       imageUrl: body.imageUrl,
-      steps: body.steps,
+      steps: {
+        create: (body.steps ?? []).map((text: string, i: number) => ({
+          text,
+          order: i,
+        })),
+      },
     },
+    include: { steps: true },
   });
 
-  return Response.json(updated);
+  return NextResponse.json(updated);
 }
 
-// DELETE
-export async function DELETE(
-  req: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(req: NextRequest, context: Context) {
   const { id } = await context.params;
 
   await prisma.recipe.delete({
     where: { id },
   });
 
-  return Response.json({ ok: true });
+  return NextResponse.json({ ok: true });
 }

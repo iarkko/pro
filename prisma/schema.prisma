@@ -21,7 +21,7 @@ model Step {
   id        String  @id @default(cuid())
   text      String
   imageUrl  String?
-  order     Int
+  stepOrder Int     @map("order")
   recipeId  String
   recipe    Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 }

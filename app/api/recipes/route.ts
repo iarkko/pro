@@ -1,20 +1,13 @@
-import { PrismaClient } from "@prisma/client";
-
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
-
-const prisma = globalForPrisma.prisma ?? new PrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+import { prisma } from "@/app/lib/prisma";
 
 // GET all recipes
 export async function GET() {
   try {
     const recipes = await prisma.recipe.findMany({
       orderBy: { createdAt: "desc" },
+      include: {
+        steps: true,
+      },
     });
 
     return Response.json(recipes);
@@ -34,7 +27,15 @@ export async function POST(req: Request) {
         title: body.title,
         description: body.description,
         imageUrl: body.imageUrl ?? "",
-        steps: body.steps ?? [],
+        steps: {
+          create: (body.steps ?? []).map((text: string, i: number) => ({
+            text,
+            stepOrder: i, // ← ВАЖНО: было "order", стало "stepOrder"
+          })),
+        },
+      },
+      include: {
+        steps: true,
       },
     });
 
