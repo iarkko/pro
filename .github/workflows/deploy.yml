@@ -34,6 +34,9 @@ jobs:
             echo "📥 Pull latest code..."
             git pull origin main
 
+            echo "🛑 Stop old containers (safe)..."
+            docker compose down --remove-orphans || true
+
             echo "🔨 Build containers..."
             docker compose build --no-cache
 
@@ -44,9 +47,6 @@ jobs:
             until docker compose exec -T postgres pg_isready -U postgres; do
               sleep 2
             done
-
-            echo "⏳ Waiting for app container..."
-            sleep 5
 
             echo "🧬 Running Prisma migrations..."
             docker compose exec -T app npx prisma migrate deploy
