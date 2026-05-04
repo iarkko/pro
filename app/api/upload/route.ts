@@ -1,20 +1,41 @@
-import { writeFile } from "fs/promises";
+import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const formData = await req.formData();
-  const file = formData.get("file") as File;
+  try {
+    const formData = await req.formData();
+    const file = formData.get("file") as File;
 
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
+    if (!file) {
+      return NextResponse.json(
+        { error: "No file provided" },
+        { status: 400 }
+      );
+    }
 
-  const fileName = `${Date.now()}-${file.name}`;
-  const filePath = path.join(process.cwd(), "uploads", fileName);
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
-  await writeFile(filePath, buffer);
+    const fileName = `${Date.now()}-${file.name}`;
 
-  return NextResponse.json({
-    url: `/uploads/${fileName}`,
-  });
+    // 🔥 ЕДИНЫЙ ХОСТОВЫЙ STORAGE (через volume)
+    const uploadDir = "/app/uploads";
+    const filePath = path.join(uploadDir, fileName);
+
+    await mkdir(uploadDir, { recursive: true });
+    await writeFile(filePath, buffer);
+
+    return NextResponse.json({
+      url: `/uploads/${fileName}`,
+    });
+
+  } catch (err) {
+    console.error("UPLOAD ERROR:", err);
+
+    return NextResponse.json(
+      { error: "Upload failed" },
+      { status: 500 }
+    );
+  }
 }

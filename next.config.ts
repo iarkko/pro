@@ -3,7 +3,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   async headers() {
     return [
-      // 🚫 отключаем кеш для API (у тебя уже было правильно)
       {
         source: "/api/:path*",
         headers: [
@@ -13,8 +12,6 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-
-      // 🧠 ВАЖНО: отключаем кеш для uploads (иначе старые картинки могут висеть)
       {
         source: "/uploads/:path*",
         headers: [
@@ -27,7 +24,6 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // 🔥 важно для Docker/production (особенно если используешь next/image где-то)
   images: {
     unoptimized: true,
   },

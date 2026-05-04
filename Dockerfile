@@ -1,5 +1,5 @@
 # =========================
-# 1. Install deps
+# deps
 # =========================
 FROM node:20-slim AS deps
 
@@ -8,12 +8,11 @@ WORKDIR /app
 RUN apt-get update -y && apt-get install -y openssl
 
 COPY package*.json ./
-
 RUN npm ci
 
 
 # =========================
-# 2. Build app
+# builder
 # =========================
 FROM node:20-slim AS builder
 
@@ -29,7 +28,7 @@ RUN npm run build
 
 
 # =========================
-# 3. Production runtime
+# runner
 # =========================
 FROM node:20-slim AS runner
 
@@ -39,12 +38,15 @@ RUN apt-get update -y && apt-get install -y openssl
 
 ENV NODE_ENV=production
 
+# создаём uploads внутри контейнера
+RUN mkdir -p /app/uploads
+
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/next.config.* ./
+COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 

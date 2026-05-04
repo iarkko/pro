@@ -9,9 +9,6 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
 
-    ports:
-      - "5432:5432"
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -39,11 +36,14 @@ services:
     ports:
       - "3000:3000"
 
-    command: npm run start
+    # 🔥 КЛЮЧ: единый storage на хосте
+    volumes:
+      - /home/dev/pro/uploads:/app/uploads
 
-    # 🔥 ВАЖНО: чтобы Prisma не ломался на старых build'ах
     env_file:
       - .env
+
+    command: sh -c "npx prisma migrate deploy && npm run start"
 
 volumes:
   postgres_data:
