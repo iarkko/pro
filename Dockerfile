@@ -38,7 +38,7 @@ RUN apt-get update -y && apt-get install -y openssl
 
 ENV NODE_ENV=production
 
-# создаём uploads внутри контейнера
+# uploads внутри контейнера (volume перекроет при необходимости)
 RUN mkdir -p /app/uploads
 
 COPY --from=builder /app/package*.json ./
@@ -50,4 +50,5 @@ COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start"]
+# 🔥 ВАЖНО: слушаем 0.0.0.0, иначе будет Empty reply / 502
+CMD ["npx", "next", "start", "-H", "0.0.0.0", "-p", "3000"]

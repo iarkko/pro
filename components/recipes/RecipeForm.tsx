@@ -18,7 +18,6 @@ export default function RecipeForm({
   const [imageUrl, setImageUrl] = useState<string | undefined>();
   const [steps, setSteps] = useState<Step[]>([]);
 
-  // ✅ FIX: proper ref (NOT useState)
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const handleMainImage = (file: File | null) => {
@@ -38,7 +37,7 @@ export default function RecipeForm({
   return (
     <div className="max-w-3xl mx-auto space-y-6">
 
-      {/* MAIN IMAGE DROP ZONE */}
+      {/* MAIN IMAGE */}
       <div
         onClick={() => fileRef.current?.click()}
         onDragOver={(e) => e.preventDefault()}
@@ -57,10 +56,7 @@ export default function RecipeForm({
         />
 
         {imageUrl ? (
-          <img
-            src={imageUrl}
-            className="w-full h-full object-cover"
-          />
+          <img src={imageUrl} className="w-full h-full object-cover" />
         ) : (
           <span className="text-white/40">Drop / Click main image</span>
         )}
@@ -83,7 +79,13 @@ export default function RecipeForm({
       />
 
       {/* STEPS */}
-      <div className="space-y-4">
+      <div
+        className={
+          steps.length > 4
+            ? "grid grid-cols-2 gap-4"
+            : "space-y-4"
+        }
+      >
         {steps.map((step, index) => (
           <StepItem
             key={index}

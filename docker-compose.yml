@@ -6,7 +6,7 @@ services:
 
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: y198619
       POSTGRES_DB: postgres
 
     volumes:
@@ -31,14 +31,13 @@ services:
         condition: service_healthy
 
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+      DATABASE_URL: postgresql://postgres:y198619@postgres:5432/postgres
 
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
 
-    # 🔥 КЛЮЧ: единый storage на хосте
     volumes:
-      - /home/dev/pro/uploads:/app/uploads
+      - ./uploads:/app/uploads
 
     env_file:
       - .env

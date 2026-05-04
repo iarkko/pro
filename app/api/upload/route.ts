@@ -17,9 +17,12 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const fileName = `${Date.now()}-${file.name}`;
+    // ⚠️ защита от мусорных имен
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
 
-    // 🔥 ЕДИНЫЙ ХОСТОВЫЙ STORAGE (через volume)
+    const fileName = `${Date.now()}-${safeName}`;
+
+    // 🔥 ПИШЕМ В VOLUME (единый источник)
     const uploadDir = "/app/uploads";
     const filePath = path.join(uploadDir, fileName);
 
