@@ -29,15 +29,19 @@ export async function PUT(req: NextRequest, context: Context) {
     data: {
       title: body.title,
       description: body.description,
-      imageUrl: body.imageUrl,
+      imageUrl: body.imageUrl ?? "",
+
       steps: {
-        create: (body.steps ?? []).map((text: string, i: number) => ({
-          text,
-          order: i,
+        create: (body.steps ?? []).map((step: any, i: number) => ({
+          text: step.text ?? "",
+          imageUrl: step.imageUrl ?? null,
+          stepOrder: i,
         })),
       },
     },
-    include: { steps: true },
+    include: {
+      steps: true,
+    },
   });
 
   return NextResponse.json(updated);

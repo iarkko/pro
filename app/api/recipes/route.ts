@@ -17,7 +17,7 @@ export async function GET() {
   }
 }
 
-// CREATE recipe
+// CREATE recipe (FIXED SCHEMA MATCH)
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -27,10 +27,12 @@ export async function POST(req: Request) {
         title: body.title,
         description: body.description,
         imageUrl: body.imageUrl ?? "",
+
         steps: {
-          create: (body.steps ?? []).map((text: string, i: number) => ({
-            text,
-            stepOrder: i, // ← ВАЖНО: было "order", стало "stepOrder"
+          create: (body.steps ?? []).map((step: any, i: number) => ({
+            text: step.text ?? "",
+            imageUrl: step.imageUrl ?? null,
+            stepOrder: i,
           })),
         },
       },
@@ -42,6 +44,12 @@ export async function POST(req: Request) {
     return Response.json(recipe);
   } catch (err) {
     console.error("CREATE RECIPE ERROR:", err);
-    return new Response("Internal Server Error", { status: 500 });
+    return new Response(
+      JSON.stringify({
+        error: "Internal Server Error",
+        details: String(err),
+      }),
+      { status: 500 }
+    );
   }
 }
