@@ -22,6 +22,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      no_cache: true   # 🔥 важно: всегда пересборка
 
     container_name: pro-app-1
     restart: always
@@ -41,8 +42,6 @@ services:
 
     env_file:
       - .env
-
-    command: sh -c "npx prisma migrate deploy && npm run start"
 
 volumes:
   postgres_data:

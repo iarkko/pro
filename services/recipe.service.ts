@@ -32,8 +32,8 @@ export const RecipeService = {
     return prisma.recipe.create({
       data: {
         title: data.title,
-        description: data.description ?? null,
-        imageUrl: data.imageUrl ?? null,
+        description: data.description ?? "",
+        imageUrl: data.imageUrl ?? "",
 
         steps: {
           create: (data.steps ?? []).map((s, index) => ({
@@ -57,16 +57,15 @@ export const RecipeService = {
       title?: string;
       description?: string;
       imageUrl?: string;
-      steps?: { id?: string; text: string; imageUrl?: string }[];
+      steps?: { text: string; imageUrl?: string }[];
     }
   ) {
     return prisma.recipe.update({
       where: { id },
-
       data: {
         title: data.title,
-        description: data.description ?? undefined,
-        imageUrl: data.imageUrl ?? undefined,
+        description: data.description ?? "",
+        imageUrl: data.imageUrl ?? "",
 
         steps: data.steps
           ? {

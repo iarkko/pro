@@ -1,49 +1,52 @@
 import { prisma } from "@/app/lib/prisma";
 
-// GET all recipes
 export async function GET() {
   try {
     const recipes = await prisma.recipe.findMany({
       orderBy: { createdAt: "desc" },
       include: {
-        steps: true,
+        steps: {
+          orderBy: { stepOrder: "asc" }, // 🔥 важно
+        },
       },
     });
 
     return Response.json(recipes);
   } catch (err) {
-    console.error("GET RECIPES ERROR:", err);
-    return new Response("Internal Server Error", { status: 500 });
+    console.error("GET ERROR:", err);
+    return Response.json([], { status: 200 });
   }
 }
 
-// CREATE recipe (FIXED SCHEMA MATCH)
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
     const recipe = await prisma.recipe.create({
       data: {
-        title: body.title,
-        description: body.description,
-        imageUrl: body.imageUrl ?? "",
+        title: body.title || "Untitled",
+        description: body.description || "",
+        imageUrl: body.imageUrl || "",
 
         steps: {
-          create: (body.steps ?? []).map((step: any, i: number) => ({
-            text: step.text ?? "",
-            imageUrl: step.imageUrl ?? null,
+          create: (body.steps ?? []).map((s: any, i: number) => ({
+            text: s.text || "",
+            imageUrl: s.imageUrl ?? null,
             stepOrder: i,
           })),
         },
       },
       include: {
-        steps: true,
+        steps: {
+          orderBy: { stepOrder: "asc" },
+        },
       },
     });
 
     return Response.json(recipe);
   } catch (err) {
-    console.error("CREATE RECIPE ERROR:", err);
+    console.error("CREATE ERROR:", err);
+
     return new Response(
       JSON.stringify({
         error: "Internal Server Error",

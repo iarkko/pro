@@ -18,10 +18,12 @@ model Recipe {
 }
 
 model Step {
-  id        String  @id @default(cuid())
-  text      String
-  imageUrl  String?
-  stepOrder Int     @map("order")
-  recipeId  String
-  recipe    Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  text       String
+  imageUrl   String?
+  stepOrder  Int
+  recipeId   String
+  recipe     Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId])
 }
