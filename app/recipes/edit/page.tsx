@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import RecipeForm from "@/components/recipes/RecipeForm";
+import type { RecipeInput } from "@/types/recipe";
 
 export default function EditRecipePage() {
   const { id } = useParams();
-  const [recipe, setRecipe] = useState<any>(null);
+  const [recipe, setRecipe] = useState<RecipeInput | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -17,7 +18,7 @@ export default function EditRecipePage() {
       .catch(() => setRecipe(null));
   }, [id]);
 
-  async function updateRecipe(data: any) {
+  async function updateRecipe(data: RecipeInput) {
     if (!id) return;
 
     await fetch(`/api/recipes/${id}`, {
@@ -34,6 +35,7 @@ export default function EditRecipePage() {
   return (
     <div className="max-w-6xl mx-auto">
       <RecipeForm
+        key={String(id)}
         onSubmit={updateRecipe}
         initialData={recipe}
       />

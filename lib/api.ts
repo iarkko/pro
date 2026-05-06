@@ -1,4 +1,4 @@
-import type { Recipe } from "@/types/recipe";
+import type { Recipe, RecipeInput } from "@/types/recipe";
 
 // GET
 export async function getRecipes(): Promise<Recipe[]> {
@@ -12,7 +12,7 @@ export async function getRecipes(): Promise<Recipe[]> {
 
   const data = await res.json();
 
-  return data.map((recipe: any) => ({
+  return (data as Recipe[]).map((recipe) => ({
     id: recipe.id,
     title: recipe.title,
     description: recipe.description ?? "",
@@ -22,12 +22,7 @@ export async function getRecipes(): Promise<Recipe[]> {
 }
 
 // CREATE
-export async function createRecipe(data: {
-  title: string;
-  description: string;
-  imageUrl: string;
-  steps: string[];
-}): Promise<Recipe> {
+export async function createRecipe(data: RecipeInput): Promise<Recipe> {
   const res = await fetch("/api/recipes", {
     method: "POST",
     headers: {
@@ -40,7 +35,7 @@ export async function createRecipe(data: {
     throw new Error("Failed to create recipe");
   }
 
-  const recipe = await res.json();
+  const recipe = (await res.json()) as Recipe;
 
   return {
     id: recipe.id,

@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import type { Recipe, RecipeStep } from "@/types/recipe";
 
 export default function RecipeViewPage() {
   const { id } = useParams();
-  const [recipe, setRecipe] = useState<any>(null);
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -34,6 +35,7 @@ export default function RecipeViewPage() {
       {recipe?.imageUrl && (
         <img
           src={recipe.imageUrl}
+          alt={recipe.title || "Recipe image"}
           className="w-full rounded-xl object-cover"
         />
       )}
@@ -43,8 +45,8 @@ export default function RecipeViewPage() {
       </p>
 
       <div className="space-y-3">
-        {(recipe?.steps ?? []).map((s: any, i: number) => (
-          <div key={i} className="bg-white/5 p-3 rounded-lg">
+        {(recipe?.steps ?? []).map((s: RecipeStep, i: number) => (
+          <div key={s.id ?? i} className="bg-white/5 p-3 rounded-lg">
             {s?.text || ""}
           </div>
         ))}

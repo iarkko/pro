@@ -21,19 +21,27 @@ function uid() {
 }
 
 /* IMAGE VIEWER */
-function ImageViewer({ src, onClose }: any) {
+function ImageViewer({ src, onClose }: { src: string; onClose: () => void }) {
   return (
     <div
       className="fixed inset-0 bg-black/90 flex items-center justify-center z-50"
       onClick={onClose}
     >
-      <img src={src} className="max-w-[90vw] max-h-[90vh]" />
+      <img src={src} alt="Preview" className="max-w-[90vw] max-h-[90vh]" />
     </div>
   );
 }
 
 /* CARD */
-function RecipeCard({ r, onDelete, onImage }: any) {
+function RecipeCard({
+  r,
+  onDelete,
+  onImage,
+}: {
+  r: Recipe;
+  onDelete: (id: string) => void;
+  onImage: (src: string) => void;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -42,6 +50,7 @@ function RecipeCard({ r, onDelete, onImage }: any) {
       <div onClick={() => setOpen(!open)} className="cursor-pointer">
         <img
           src={r.imageUrl}
+          alt={r.title || "Recipe image"}
           className="w-full h-32 object-cover rounded"
           onClick={(e) => {
             e.stopPropagation();
@@ -64,8 +73,11 @@ function RecipeCard({ r, onDelete, onImage }: any) {
               {s.imageUrl && (
                 <img
                   src={s.imageUrl}
+                  alt={`Step ${i + 1} image`}
                   className="w-20 h-20 object-cover cursor-pointer"
-                  onClick={() => onImage(s.imageUrl)}
+                  onClick={() => {
+                    if (s.imageUrl) onImage(s.imageUrl);
+                  }}
                 />
               )}
             </div>
@@ -241,6 +253,7 @@ export default function RecipesPage() {
                 {form.imageUrl ? (
                   <img
                     src={form.imageUrl}
+                    alt={form.title || "Recipe image"}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -301,6 +314,7 @@ export default function RecipesPage() {
                       {s.imageUrl ? (
                         <img
                           src={s.imageUrl}
+                          alt="Step image"
                           className="w-full h-full object-cover"
                         />
                       ) : (

@@ -74,6 +74,7 @@ export default function StepItem({
         {imageUrl ? (
           <img
             src={imageUrl}
+            alt="Step image"
             className="w-full h-full object-cover"
           />
         ) : (

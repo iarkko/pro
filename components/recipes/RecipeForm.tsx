@@ -1,38 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
-type Step = {
-  text: string;
-  imageUrl?: string;
-};
+import { useRef, useState } from "react";
+import type { RecipeInput, RecipeStep } from "@/types/recipe";
 
 type Props = {
-  onSubmit: (data: any) => void;
-  initialData?: {
-    title: string;
-    description?: string;
-    imageUrl?: string;
-    steps?: Step[];
-  };
+  onSubmit: (data: RecipeInput) => void;
+  initialData?: RecipeInput;
 };
 
 export default function RecipeForm({ onSubmit, initialData }: Props) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState<string | undefined>();
-  const [steps, setSteps] = useState<Step[]>([]);
+  const [title, setTitle] = useState(initialData?.title ?? "");
+  const [description, setDescription] = useState(initialData?.description ?? "");
+  const [imageUrl, setImageUrl] = useState<string | null | undefined>(
+    initialData?.imageUrl
+  );
+  const [steps, setSteps] = useState<RecipeStep[]>(initialData?.steps ?? []);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    if (!initialData) return;
-
-    setTitle(initialData.title || "");
-    setDescription(initialData.description || "");
-    setImageUrl(initialData.imageUrl || "");
-    setSteps(initialData.steps || []);
-  }, [initialData]);
 
   function handleMainImage(file: File | null) {
     if (!file) return;
@@ -46,7 +30,7 @@ export default function RecipeForm({ onSubmit, initialData }: Props) {
     setSteps((p) => [...p, { text: "", imageUrl: undefined }]);
   }
 
-  function updateStep(index: number, value: Step) {
+  function updateStep(index: number, value: RecipeStep) {
     setSteps((p) => {
       const copy = [...p];
       copy[index] = value;
@@ -104,6 +88,7 @@ export default function RecipeForm({ onSubmit, initialData }: Props) {
           {imageUrl ? (
             <img
               src={imageUrl}
+              alt={title || "Recipe image"}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -169,6 +154,7 @@ export default function RecipeForm({ onSubmit, initialData }: Props) {
               {step.imageUrl ? (
                 <img
                   src={step.imageUrl}
+                  alt={`Step ${i + 1} image`}
                   className="w-full h-full object-cover"
                 />
               ) : (

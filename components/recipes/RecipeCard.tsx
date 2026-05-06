@@ -1,9 +1,13 @@
 import Link from "next/link";
+import type { Recipe } from "@/types/recipe";
 
 export default function RecipeCard({
   r,
   onDelete,
-}: any) {
+}: {
+  r?: Recipe | null;
+  onDelete: (id: string) => void;
+}) {
   if (!r) return null;
 
   return (
@@ -13,6 +17,7 @@ export default function RecipeCard({
         {r.imageUrl && (
           <img
             src={r.imageUrl}
+            alt={r.title || "Recipe image"}
             className="rounded-lg h-40 w-full object-cover"
           />
         )}

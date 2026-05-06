@@ -2,11 +2,15 @@
 
 import { useState } from "react";
 import ImageModal from "@/components/ui/ImageModal";
+import type { Recipe, RecipeStep } from "@/types/recipe";
 
 export default function RecipePreview({
   recipe,
   onClose,
-}: any) {
+}: {
+  recipe: Recipe;
+  onClose: () => void;
+}) {
   const [modal, setModal] = useState<string | null>(null);
 
   return (
@@ -30,15 +34,18 @@ export default function RecipePreview({
           {recipe.imageUrl && (
             <img
               src={recipe.imageUrl}
-              onClick={() => setModal(recipe.imageUrl)}
+              onClick={() => {
+                if (recipe.imageUrl) setModal(recipe.imageUrl);
+              }}
+              alt={recipe.title || "Recipe image"}
               className="w-full rounded-lg cursor-pointer"
             />
           )}
 
           {/* STEPS */}
           <div className="space-y-3">
-            {recipe.steps?.map((s: any, i: number) => (
-              <div key={i} className="p-3 bg-white/5 rounded-lg">
+            {recipe.steps?.map((s: RecipeStep, i: number) => (
+              <div key={s.id ?? i} className="p-3 bg-white/5 rounded-lg">
 
                 <p className="mb-2">{s.text}</p>
 
@@ -46,7 +53,10 @@ export default function RecipePreview({
                 {s.imageUrl && (
                   <img
                     src={s.imageUrl}
-                    onClick={() => setModal(s.imageUrl)}
+                    onClick={() => {
+                      if (s.imageUrl) setModal(s.imageUrl);
+                    }}
+                    alt={`Step ${i + 1} image`}
                     className="w-1/3 rounded cursor-pointer"
                   />
                 )}

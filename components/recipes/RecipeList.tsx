@@ -1,17 +1,27 @@
 import RecipeCard from "./RecipeCard";
+import type { Recipe } from "@/types/recipe";
 
-const mock = [
+const mock: Recipe[] = [
   {
+    id: "pancakes",
     title: "Pancakes",
-    desc: "Fluffy breakfast pancakes",
+    description: "Fluffy breakfast pancakes",
+    imageUrl: "",
+    steps: [],
   },
   {
+    id: "carbonara",
     title: "Carbonara",
-    desc: "Classic Italian pasta",
+    description: "Classic Italian pasta",
+    imageUrl: "",
+    steps: [],
   },
   {
+    id: "greek-salad",
     title: "Greek Salad",
-    desc: "Fresh vegetables & feta",
+    description: "Fresh vegetables & feta",
+    imageUrl: "",
+    steps: [],
   },
 ];
 
@@ -31,7 +41,7 @@ export default function RecipeList() {
       {/* 🔥 GRID вместо списка */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {mock.map((r, i) => (
-          <RecipeCard key={i} recipe={r} />
+          <RecipeCard key={r.id ?? i} r={r} onDelete={() => {}} />
         ))}
       </div>
 

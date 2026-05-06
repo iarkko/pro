@@ -1,10 +1,11 @@
 "use client";
 
 import RecipeForm from "@/components/recipes/RecipeForm";
+import type { RecipeInput } from "@/types/recipe";
 
 export default function NewRecipePage() {
 
-  async function createRecipe(data: any) {
+  async function createRecipe(data: RecipeInput) {
     try {
       console.log("CREATE REQUEST:", data);
 

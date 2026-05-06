@@ -38,3 +38,11 @@ Thumbs.db
 
 # uploads (если не хочешь в git)
 public/uploads/
+uploads/
+
+# local secrets and dumps
+keys
+keys.pub
+n
+n.pub
+*.tar.gz

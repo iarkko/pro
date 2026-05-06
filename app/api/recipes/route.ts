@@ -1,4 +1,5 @@
 import { prisma } from "@/app/lib/prisma";
+import type { RecipeInput, RecipeStep } from "@/types/recipe";
 
 export async function GET() {
   try {
@@ -20,7 +21,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = (await req.json()) as RecipeInput;
 
     const recipe = await prisma.recipe.create({
       data: {
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
         imageUrl: body.imageUrl || "",
 
         steps: {
-          create: (body.steps ?? []).map((s: any, i: number) => ({
+          create: (body.steps ?? []).map((s: RecipeStep, i: number) => ({
             text: s.text || "",
             imageUrl: s.imageUrl ?? null,
             stepOrder: i,

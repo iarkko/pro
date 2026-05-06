@@ -16,6 +16,7 @@ export default function ImageModal({
     >
       <img
         src={src}
+        alt="Preview"
         className="max-w-[92%] max-h-[92%] object-contain rounded-lg"
       />
     </div>
