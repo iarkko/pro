@@ -1,21 +1,17 @@
 export type RecipeStep = {
   id?: string;
   text: string;
-  imageUrl?: string | null;
-  stepOrder?: number;
-};
-
-export type Recipe = {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl?: string | null;
-  steps: RecipeStep[];
+  imageUrl?: string;
 };
 
 export type RecipeInput = {
   title: string;
-  description?: string;
-  imageUrl?: string | null;
-  steps?: RecipeStep[];
+  description: string;
+  imageUrl?: string;
+  notionUrl?: string;
+  steps: RecipeStep[];
+};
+
+export type Recipe = RecipeInput & {
+  id: string;
 };

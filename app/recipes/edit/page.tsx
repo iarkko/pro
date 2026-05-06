@@ -36,7 +36,7 @@ export default function EditRecipePage() {
     <div className="max-w-6xl mx-auto">
       <RecipeForm
         key={String(id)}
-        onSubmit={updateRecipe}
+        onSubmitAction={updateRecipe}
         initialData={recipe}
       />
     </div>

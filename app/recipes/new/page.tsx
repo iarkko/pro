@@ -25,7 +25,7 @@ export default function NewRecipePage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <RecipeForm onSubmit={createRecipe} />
+      <RecipeForm onSubmitAction={createRecipe} />
     </div>
   );
 }

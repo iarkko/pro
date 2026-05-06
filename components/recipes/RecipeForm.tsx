@@ -4,17 +4,22 @@ import { useRef, useState } from "react";
 import type { RecipeInput, RecipeStep } from "@/types/recipe";
 
 type Props = {
-  onSubmit: (data: RecipeInput) => void;
+  onSubmitAction: (data: RecipeInput) => void;
   initialData?: RecipeInput;
 };
 
-export default function RecipeForm({ onSubmit, initialData }: Props) {
+export default function RecipeForm({ onSubmitAction, initialData }: Props) {
   const [title, setTitle] = useState(initialData?.title ?? "");
   const [description, setDescription] = useState(initialData?.description ?? "");
-  const [imageUrl, setImageUrl] = useState<string | null | undefined>(
+  const [notionUrl, setNotionUrl] = useState(initialData?.notionUrl ?? "");
+  const [imageUrl, setImageUrl] = useState<string | undefined>(
     initialData?.imageUrl
   );
-  const [steps, setSteps] = useState<RecipeStep[]>(initialData?.steps ?? []);
+  const [steps, setSteps] = useState<RecipeStep[]>(
+    initialData?.steps?.length
+      ? initialData.steps
+      : [{ text: "", imageUrl: undefined }]
+  );
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -27,47 +32,64 @@ export default function RecipeForm({ onSubmit, initialData }: Props) {
   }
 
   function addStep() {
-    setSteps((p) => [...p, { text: "", imageUrl: undefined }]);
+    setSteps((prev) => [...prev, { text: "", imageUrl: undefined }]);
   }
 
   function updateStep(index: number, value: RecipeStep) {
-    setSteps((p) => {
-      const copy = [...p];
+    setSteps((prev) => {
+      const copy = [...prev];
       copy[index] = value;
       return copy;
     });
   }
 
   function removeStep(index: number) {
-    setSteps((p) => p.filter((_, i) => i !== index));
+    setSteps((prev) => prev.filter((_, i) => i !== index));
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="space-y-8">
+      <div className="grid gap-6 lg:grid-cols-[1.8fr_1fr]">
+        <div className="space-y-5 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[var(--shadow)]">
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-slate-200">
+              Title
+            </label>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Recipe title"
+              className="w-full rounded-3xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-400/60"
+            />
+          </div>
 
-      {/* HEADER */}
-      <div className="flex gap-6">
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-slate-200">
+              Description
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Description"
+              className="w-full min-h-[140px] rounded-3xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-400/60 resize-none"
+            />
+          </div>
 
-        {/* LEFT */}
-        <div className="flex-1 flex flex-col gap-4">
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Recipe title"
-            className="w-full bg-white/5 p-3 rounded-lg"
-          />
-
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Description"
-            className="w-full bg-white/5 p-3 rounded-lg h-40 resize-none"
-          />
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-slate-200">
+              Notion link
+            </label>
+            <input
+              value={notionUrl}
+              onChange={(e) => setNotionUrl(e.target.value)}
+              placeholder="https://www.notion.so/..."
+              className="w-full rounded-3xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-400/60"
+            />
+          </div>
         </div>
 
-        {/* RIGHT IMAGE */}
         <div
-          className="w-[260px] h-[160px] border border-dashed border-white/20 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden bg-white/5"
+          className="relative rounded-3xl border border-dashed border-white/10 bg-white/5 p-4 text-center text-sm text-slate-300 transition hover:border-indigo-400/30"
           onClick={() => fileRef.current?.click()}
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
@@ -80,122 +102,142 @@ export default function RecipeForm({ onSubmit, initialData }: Props) {
             type="file"
             hidden
             accept="image/*"
-            onChange={(e) =>
-              handleMainImage(e.target.files?.[0] || null)
-            }
+            onChange={(e) => handleMainImage(e.target.files?.[0] || null)}
           />
 
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={title || "Recipe image"}
-              className="w-full h-full object-cover"
+              className="h-[300px] w-full rounded-3xl object-cover"
             />
           ) : (
-            <span className="text-white/40 text-sm">
-              Drop / Click image
-            </span>
+            <div className="flex h-[300px] flex-col items-center justify-center gap-3 rounded-3xl bg-slate-950/60">
+              <span className="text-sm text-slate-400">
+                Drop or click to add a cover image
+              </span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-slate-200">
+                Upload image
+              </span>
+            </div>
           )}
         </div>
       </div>
 
-      {/* STEPS */}
-      <div className="space-y-3">
-        {steps.map((step, i) => (
-          <div key={i} className="flex gap-3 items-start">
-
-            {/* TEXT */}
-            <textarea
-              value={step.text}
-              onChange={(e) =>
-                updateStep(i, { ...step, text: e.target.value })
-              }
-              className="flex-1 p-3 bg-black/40 rounded-lg"
-              placeholder="Step text"
-            />
-
-            {/* IMAGE */}
-            <label
-              className="w-[160px] h-[100px] border border-dashed border-white/20 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden"
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                const file = e.dataTransfer.files?.[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = () => {
-                  updateStep(i, {
-                    ...step,
-                    imageUrl: reader.result as string,
-                  });
-                };
-                reader.readAsDataURL(file);
-              }}
-            >
-              <input
-                type="file"
-                hidden
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-
-                  const reader = new FileReader();
-                  reader.onload = () => {
-                    updateStep(i, {
-                      ...step,
-                      imageUrl: reader.result as string,
-                    });
-                  };
-                  reader.readAsDataURL(file);
-                }}
-              />
-
-              {step.imageUrl ? (
-                <img
-                  src={step.imageUrl}
-                  alt={`Step ${i + 1} image`}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-white/40 text-xs">
-                  image
-                </span>
-              )}
-            </label>
-
-            <button
-              onClick={() => removeStep(i)}
-              className="text-red-400 px-2"
-            >
-              ✕
-            </button>
+      <div className="space-y-5 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[var(--shadow)]">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-lg font-semibold text-slate-100">Steps</p>
+            <p className="text-sm text-slate-500">
+              Add step text and optional step image.
+            </p>
           </div>
-        ))}
+          <button
+            type="button"
+            onClick={addStep}
+            className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
+          >
+            + Add step
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {steps.map((step, index) => (
+            <div
+              key={index}
+              className="grid gap-4 rounded-3xl border border-white/10 bg-slate-950/80 p-5 sm:grid-cols-[1fr_170px]"
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                  <label className="text-sm text-slate-300">
+                    Step {index + 1}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => removeStep(index)}
+                    className="text-sm text-red-400 hover:text-red-300"
+                  >
+                    Remove
+                  </button>
+                </div>
+                <textarea
+                  value={step.text}
+                  onChange={(e) =>
+                    updateStep(index, { ...step, text: e.target.value })
+                  }
+                  placeholder="Step description"
+                  className="min-h-[140px] w-full rounded-3xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-400/60 resize-none"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-sm text-slate-300">Step image</label>
+                <div
+                  className="relative flex h-[170px] items-center justify-center overflow-hidden rounded-3xl border border-dashed border-white/10 bg-slate-900/60 text-center text-sm text-slate-500 transition hover:border-indigo-400/30 cursor-pointer"
+                  onClick={() =>
+                    document
+                      .getElementById(`step-image-${index}`)
+                      ?.click()
+                  }
+                >
+                  <input
+                    id={`step-image-${index}`}
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        updateStep(index, {
+                          ...step,
+                          imageUrl: reader.result as string,
+                        });
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+
+                  {step.imageUrl ? (
+                    <img
+                      src={step.imageUrl}
+                      alt={`Step ${index + 1} image`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-slate-400">
+                      Upload or drag a step image
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* ACTIONS */}
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
-          onClick={addStep}
-          className="px-4 py-2 bg-indigo-600 rounded-lg"
-        >
-          Add step
-        </button>
-
-        <button
+          type="button"
           onClick={() =>
-            onSubmit({
+            onSubmitAction({
               title,
               description,
+              notionUrl,
               imageUrl,
               steps,
             })
           }
-          className="flex-1 py-3 bg-green-600 rounded-lg"
+          className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_18px_50px_rgba(52,211,153,0.2)] transition hover:bg-emerald-400"
         >
-          Save
+          Save recipe
         </button>
+
+        <p className="text-sm text-slate-400">
+          The recipe creation theme stays dark and clean across the app.
+        </p>
       </div>
     </div>
   );

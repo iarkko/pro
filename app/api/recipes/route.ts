@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/app/lib/prisma";
 import type { RecipeInput, RecipeStep } from "@/types/recipe";
 
@@ -7,7 +8,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
       include: {
         steps: {
-          orderBy: { stepOrder: "asc" }, // 🔥 важно
+          orderBy: { stepOrder: "asc" },
         },
       },
     });
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
         title: body.title || "Untitled",
         description: body.description || "",
         imageUrl: body.imageUrl || "",
+        notionUrl: body.notionUrl ?? null,
 
         steps: {
           create: (body.steps ?? []).map((s: RecipeStep, i: number) => ({
@@ -36,7 +38,7 @@ export async function POST(req: Request) {
             stepOrder: i,
           })),
         },
-      },
+      } as Prisma.RecipeCreateInput,
       include: {
         steps: {
           orderBy: { stepOrder: "asc" },

@@ -1,351 +1,178 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import RecipeForm from "@/components/recipes/RecipeForm";
+import ImageModal from "@/components/ui/ImageModal";
+import type { Recipe, RecipeInput } from "@/types/recipe";
 
-type Step = {
-  id: string;
-  text: string;
-  imageUrl: string | null;
-};
+type ApiRecipe = Recipe;
 
-type Recipe = {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  steps: Step[];
-};
-
-function uid() {
-  return Math.random().toString(36).substring(2, 9);
-}
-
-/* IMAGE VIEWER */
-function ImageViewer({ src, onClose }: { src: string; onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 bg-black/90 flex items-center justify-center z-50"
-      onClick={onClose}
-    >
-      <img src={src} alt="Preview" className="max-w-[90vw] max-h-[90vh]" />
-    </div>
-  );
-}
-
-/* CARD */
 function RecipeCard({
-  r,
+  recipe,
   onDelete,
-  onImage,
+  onView,
 }: {
-  r: Recipe;
+  recipe: ApiRecipe;
   onDelete: (id: string) => void;
-  onImage: (src: string) => void;
+  onView: (id: string) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const hasNotion = Boolean(recipe.notionUrl?.trim());
 
   return (
-    <div className="p-3 bg-white/5 rounded-xl space-y-2">
+    <article className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 transition hover:-translate-y-0.5 hover:border-indigo-400/20">
+      <div className="relative">
+        {recipe.imageUrl ? (
+          <img
+            src={recipe.imageUrl}
+            alt={recipe.title || "Recipe image"}
+            className="h-48 w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-48 items-center justify-center bg-slate-950/80 text-slate-500">
+            No cover image
+          </div>
+        )}
 
-      <div onClick={() => setOpen(!open)} className="cursor-pointer">
-        <img
-          src={r.imageUrl}
-          alt={r.title || "Recipe image"}
-          className="w-full h-32 object-cover rounded"
-          onClick={(e) => {
-            e.stopPropagation();
-            onImage(r.imageUrl);
-          }}
-        />
-        <h3 className="font-bold mt-2">{r.title}</h3>
-        <p className="text-xs text-white/60">{r.description}</p>
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/95 to-transparent px-5 py-4">
+          <h3 className="text-xl font-semibold text-white">{recipe.title}</h3>
+          <p className="mt-1 text-sm text-slate-300 line-clamp-2">
+            {recipe.description || "No description yet."}
+          </p>
+        </div>
       </div>
 
-      {open && (
-        <div className="space-y-2">
-          {(r.steps ?? []).map((s: Step, i: number) => (
-            <div key={s.id} className="flex gap-2 bg-white/5 p-2 rounded">
+      <div className="space-y-4 px-5 py-5">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+            <span>🗒</span>
+            Notion
+          </span>
+          {hasNotion ? (
+            <a
+              href={recipe.notionUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-slate-100 hover:text-white"
+            >
+              Open link
+            </a>
+          ) : (
+            <span className="text-slate-500">Notion not set</span>
+          )}
+        </div>
 
-              <div className="text-xs flex-1">
-                {i + 1}. {s.text}
-              </div>
-
-              {s.imageUrl && (
-                <img
-                  src={s.imageUrl}
-                  alt={`Step ${i + 1} image`}
-                  className="w-20 h-20 object-cover cursor-pointer"
-                  onClick={() => {
-                    if (s.imageUrl) onImage(s.imageUrl);
-                  }}
-                />
-              )}
-            </div>
-          ))}
-
+        <div className="flex items-center justify-between gap-3 border-t border-white/10 pt-4">
           <button
-            onClick={() => onDelete(r.id)}
-            className="text-red-400"
+            type="button"
+            onClick={() => onView(recipe.id)}
+            className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
+          >
+            View
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(recipe.id)}
+            className="rounded-full bg-white/5 px-4 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/10"
           >
             Delete
           </button>
         </div>
-      )}
-    </div>
+      </div>
+    </article>
   );
 }
 
-/* PAGE */
 export default function RecipesPage() {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const router = useRouter();
+  const [recipes, setRecipes] = useState<ApiRecipe[]>([]);
   const [open, setOpen] = useState(false);
   const [zoom, setZoom] = useState<string | null>(null);
 
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    imageUrl: "",
-    steps: [{ id: uid(), text: "", imageUrl: null as string | null }],
-  });
-
   useEffect(() => {
     fetch("/api/recipes")
-      .then((r) => r.json())
-      .then(setRecipes);
+      .then((res) => res.json())
+      .then(setRecipes)
+      .catch(() => setRecipes([]));
   }, []);
 
-  function onMainImage(file: File | null) {
-    if (!file) return;
-    const r = new FileReader();
-    r.onload = () =>
-      setForm((p) => ({ ...p, imageUrl: r.result as string }));
-    r.readAsDataURL(file);
-  }
-
-  function addStep() {
-    setForm((p) => ({
-      ...p,
-      steps: [...p.steps, { id: uid(), text: "", imageUrl: null }],
-    }));
-  }
-
-  function updateStep(id: string, text: string) {
-    setForm((p) => ({
-      ...p,
-      steps: p.steps.map((s) =>
-        s.id === id ? { ...s, text } : s
-      ),
-    }));
-  }
-
-  function setStepImage(id: string, file: File | null) {
-    if (!file) return;
-
-    const r = new FileReader();
-    r.onload = () =>
-      setForm((p) => ({
-        ...p,
-        steps: p.steps.map((s) =>
-          s.id === id ? { ...s, imageUrl: r.result as string } : s
-        ),
-      }));
-
-    r.readAsDataURL(file);
-  }
-
-  async function save() {
+  async function createRecipe(data: RecipeInput) {
     const res = await fetch("/api/recipes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: form.title || "Untitled",
-        description: form.description,
-        imageUrl: form.imageUrl,
-        steps: form.steps.map((s) => ({
-          text: s.text,
-          imageUrl: s.imageUrl,
-        })),
-      }),
+      body: JSON.stringify(data),
     });
 
-    const data = await res.json();
-    setRecipes((p) => [data, ...p]);
+    const recipe = await res.json();
+    setRecipes((prev) => [recipe, ...prev]);
     setOpen(false);
   }
 
-  const stepCols =
-    form.steps.length > 3 ? "grid-cols-2" : "grid-cols-1";
+  async function deleteRecipe(id: string) {
+    await fetch(`/api/recipes/${id}`, {
+      method: "DELETE",
+    });
+    setRecipes((prev) => prev.filter((recipe) => recipe.id !== id));
+  }
 
   return (
-    <div className="space-y-6">
-
-      <div className="flex justify-between">
-        <h1 className="text-2xl font-bold">Recipes</h1>
+    <div className="space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm uppercase tracking-[0.3em] text-slate-500">
+            Recipe manager
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold text-white">
+            Your recipes
+          </h1>
+        </div>
 
         <button
           onClick={() => setOpen(true)}
-          className="bg-blue-600 px-4 py-2"
+          className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400"
         >
-          + Add
+          + New recipe
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        {recipes.map((r) => (
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {recipes.map((recipe) => (
           <RecipeCard
-            key={r.id}
-            r={r}
-            onImage={setZoom}
-            onDelete={async (id: string) => {
-              await fetch(`/api/recipes/${id}`, {
-                method: "DELETE",
-              });
-              setRecipes((p) => p.filter((x) => x.id !== id));
-            }}
+            key={recipe.id}
+            recipe={recipe}
+            onView={(id) => router.push(`/recipes/${id}`)}
+            onDelete={deleteRecipe}
           />
         ))}
       </div>
 
       {open && (
-        <div className="fixed inset-0 bg-black/70 p-10">
-          <div className="bg-[#0B1020] p-6 rounded-xl space-y-6 max-w-6xl mx-auto">
-
-            {/* HEADER */}
-            <div className="flex gap-6 h-[140px]">
-
-              <div className="w-[65%] flex flex-col gap-4">
-                <input
-                  value={form.title}
-                  onChange={(e) =>
-                    setForm({ ...form, title: e.target.value })
-                  }
-                  className="bg-white/5 p-3 rounded"
-                  placeholder="Recipe title"
-                />
-
-                <textarea
-                  value={form.description}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      description: e.target.value,
-                    })
-                  }
-                  className="bg-white/5 p-3 rounded flex-1"
-                />
+        <div className="fixed inset-0 z-40 overflow-auto bg-black/80 p-6 sm:p-10">
+          <div className="mx-auto max-w-5xl rounded-[2rem] border border-white/10 bg-slate-950/95 p-6 shadow-[var(--shadow)] sm:p-8">
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-[0.3em] text-slate-500">
+                  Create recipe
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold text-white">
+                  New recipe details
+                </h2>
               </div>
-
-              <div
-                className="w-[35%] border border-dashed"
-                onClick={() => fileRef.current?.click()}
-              >
-                <input
-                  ref={fileRef}
-                  type="file"
-                  hidden
-                  onChange={(e) =>
-                    onMainImage(e.target.files?.[0] || null)
-                  }
-                />
-
-                {form.imageUrl ? (
-                  <img
-                    src={form.imageUrl}
-                    alt={form.title || "Recipe image"}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  "Drop image"
-                )}
-              </div>
-            </div>
-
-            {/* STEPS */}
-            <div className={`grid ${stepCols} gap-3`}>
-              {form.steps.map((s) => (
-                <div key={s.id} className="flex gap-3">
-
-                  <textarea
-                    value={s.text}
-                    onChange={(e) =>
-                      updateStep(s.id, e.target.value)
-                    }
-                    className="flex-1 bg-black/40 p-2"
-                  />
-
-                  <div className="flex flex-col gap-2">
-
-                    <button
-                      onClick={() =>
-                        setForm((p) => ({
-                          ...p,
-                          steps: p.steps.filter(
-                            (x) => x.id !== s.id
-                          ),
-                        }))
-                      }
-                      className="text-red-500"
-                    >
-                      ●
-                    </button>
-
-                    <div
-                      className="w-[120px] h-[90px] border border-dashed"
-                      onClick={() =>
-                        document
-                          .getElementById(`s-${s.id}`)
-                          ?.click()
-                      }
-                    >
-                      <input
-                        id={`s-${s.id}`}
-                        type="file"
-                        hidden
-                        onChange={(e) =>
-                          setStepImage(
-                            s.id,
-                            e.target.files?.[0] || null
-                          )
-                        }
-                      />
-
-                      {s.imageUrl ? (
-                        <img
-                          src={s.imageUrl}
-                          alt="Step image"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        "img"
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-between">
-              <button onClick={addStep}>+ step</button>
               <button
-                onClick={save}
-                className="bg-green-600 px-4 py-2"
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10"
               >
-                save
+                Close
               </button>
             </div>
 
+            <RecipeForm onSubmitAction={createRecipe} />
           </div>
         </div>
       )}
 
-      {zoom && (
-        <ImageViewer
-          src={zoom}
-          onClose={() => setZoom(null)}
-        />
-      )}
+      {zoom && <ImageModal src={zoom} onClose={() => setZoom(null)} />}
     </div>
   );
 }

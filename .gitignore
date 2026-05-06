@@ -46,3 +46,4 @@ keys.pub
 n
 n.pub
 *.tar.gz
+tsconfig.tsbuildinfo

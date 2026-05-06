@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import type { Recipe, RecipeStep } from "@/types/recipe";
 
 export default function RecipeViewPage() {
   const { id } = useParams();
+  const router = useRouter();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -17,41 +19,119 @@ export default function RecipeViewPage() {
       .catch(() => setRecipe(null));
   }, [id]);
 
+  async function handleDelete() {
+    if (!id) return;
+
+    await fetch(`/api/recipes/${id}`, {
+      method: "DELETE",
+    });
+
+    router.push("/recipes");
+  }
+
+  function handleEdit() {
+    if (!id) return;
+    router.push(`/recipes/${id}/edit`);
+  }
+
   if (!recipe) {
-    return (
-      <div className="text-white/50">
-        Loading...
-      </div>
-    );
+    return <div className="text-white/50">Loading...</div>;
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-4xl space-y-8 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[var(--shadow)]">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <p className="text-sm uppercase tracking-[0.3em] text-slate-500">
+              Recipe details
+            </p>
+            <h1 className="text-3xl font-semibold text-white">
+              {recipe.title}
+            </h1>
+          </div>
 
-      <h1 className="text-2xl font-bold">
-        {recipe?.title || "No title"}
-      </h1>
+          <p className="text-slate-300">{recipe.description}</p>
 
-      {recipe?.imageUrl && (
+          {recipe.notionUrl ? (
+            <a
+              href={recipe.notionUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/80 px-4 py-2 text-sm text-slate-100 transition hover:bg-slate-900"
+            >
+              <span>🗒</span>
+              Open Notion page
+            </a>
+          ) : (
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/80 px-4 py-2 text-sm text-slate-500">
+              <span>🗒</span>
+              No notion link
+            </div>
+          )}
+        </div>
+
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((prev) => !prev)}
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/80 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-900"
+          >
+            <span>⚙</span>
+            Actions
+          </button>
+
+          {menuOpen && (
+            <div className="absolute right-0 top-full mt-3 w-44 overflow-hidden rounded-3xl border border-white/10 bg-slate-950/95 shadow-[var(--shadow)]">
+              <button
+                type="button"
+                onClick={handleEdit}
+                className="w-full px-4 py-3 text-left text-sm text-slate-100 transition hover:bg-white/5"
+              >
+                Edit recipe
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="w-full px-4 py-3 text-left text-sm text-red-400 transition hover:bg-red-500/10"
+              >
+                Delete recipe
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {recipe.imageUrl && (
         <img
           src={recipe.imageUrl}
           alt={recipe.title || "Recipe image"}
-          className="w-full rounded-xl object-cover"
+          className="w-full rounded-3xl object-cover border border-white/10"
         />
       )}
 
-      <p className="text-white/70">
-        {recipe?.description || ""}
-      </p>
-
-      <div className="space-y-3">
-        {(recipe?.steps ?? []).map((s: RecipeStep, i: number) => (
-          <div key={s.id ?? i} className="bg-white/5 p-3 rounded-lg">
-            {s?.text || ""}
+      <div className="space-y-4">
+        {(recipe.steps ?? []).map((step: RecipeStep, index: number) => (
+          <div
+            key={step.id ?? index}
+            className="rounded-3xl border border-white/10 bg-slate-950/70 p-5"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                Step {index + 1}
+              </span>
+            </div>
+            <p className="mt-3 text-slate-100">{step.text}</p>
+            {step.imageUrl && (
+              <img
+                src={step.imageUrl}
+                alt={`Step ${index + 1}`}
+                className="mt-4 w-full rounded-3xl object-cover"
+              />
+            )}
           </div>
         ))}
       </div>
-
     </div>
   );
 }
