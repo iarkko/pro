@@ -28,14 +28,14 @@ function RecipeCard({
   return (
     <motion.article
       layout
-      className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 transition hover:-translate-y-0.5 hover:border-indigo-400/20"
+      className="rounded-3xl border border-white/10 bg-white/5 transition hover:-translate-y-0.5 hover:border-indigo-400/20"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
-      onClick={() => !expanded && setExpanded(true)}
+      onClick={() => !expanded && !menuOpen && setExpanded(true)}
     >
-      <motion.div layout className="relative">
+      <motion.div layout className="relative overflow-hidden">
         {recipe.imageUrl ? (
           <img
             src={recipe.imageUrl}
@@ -106,10 +106,13 @@ function RecipeCard({
             )}
 
             <div className="flex items-center justify-end gap-3 border-t border-white/10 pt-4">
-              <div className="relative">
+              <div className="relative z-50">
                 <button
                   type="button"
-                  onClick={() => setMenuOpen((prev) => !prev)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen((prev) => !prev);
+                  }}
                   className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/80 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-900"
                 >
                   <span>⚙</span>
@@ -118,21 +121,29 @@ function RecipeCard({
 
                 {menuOpen && (
                   <motion.div
-                    className="absolute right-0 top-full mt-3 w-44 overflow-hidden rounded-3xl border border-white/10 bg-slate-950/95 shadow-[var(--shadow)]"
+                    className="absolute right-0 top-full mt-3 w-44 z-50 rounded-3xl border border-white/10 bg-slate-950/95 shadow-[var(--shadow)]"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                   >
                     <button
                       type="button"
-                      onClick={() => onEdit(recipe.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(recipe.id);
+                        setMenuOpen(false);
+                      }}
                       className="w-full px-4 py-3 text-left text-sm text-slate-100 transition hover:bg-white/5"
                     >
                       Edit recipe
                     </button>
                     <button
                       type="button"
-                      onClick={() => onDelete(recipe.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(recipe.id);
+                        setMenuOpen(false);
+                      }}
                       className="w-full px-4 py-3 text-left text-sm text-red-400 transition hover:bg-red-500/10"
                     >
                       Delete recipe
