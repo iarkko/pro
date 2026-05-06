@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import RecipeForm from "@/components/recipes/RecipeForm";
 import ImageModal from "@/components/ui/ImageModal";
 import type { Recipe, RecipeInput } from "@/types/recipe";
@@ -10,26 +11,42 @@ type ApiRecipe = Recipe;
 
 function RecipeCard({
   recipe,
-  onDelete,
   onView,
+  onDelete,
+  onImageZoom,
 }: {
   recipe: ApiRecipe;
-  onDelete: (id: string) => void;
   onView: (id: string) => void;
+  onDelete: (id: string) => void;
+  onImageZoom: (src: string) => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const hasNotion = Boolean(recipe.notionUrl?.trim());
+  const stepsCount = recipe.steps?.length || 0;
+  const isTwoColumns = stepsCount > 3;
 
   return (
-    <article className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 transition hover:-translate-y-0.5 hover:border-indigo-400/20">
-      <div className="relative">
+    <motion.article
+      layout
+      className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 transition hover:-translate-y-0.5 hover:border-indigo-400/20"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+    >
+      <motion.div layout className="relative">
         {recipe.imageUrl ? (
           <img
             src={recipe.imageUrl}
             alt={recipe.title || "Recipe image"}
-            className="h-48 w-full object-cover"
+            className="h-48 w-full object-cover cursor-pointer"
+            onClick={() => setExpanded(!expanded)}
           />
         ) : (
-          <div className="flex h-48 items-center justify-center bg-slate-950/80 text-slate-500">
+          <div
+            className="flex h-48 items-center justify-center bg-slate-950/80 text-slate-500 cursor-pointer"
+            onClick={() => setExpanded(!expanded)}
+          >
             No cover image
           </div>
         )}
@@ -40,46 +57,90 @@ function RecipeCard({
             {recipe.description || "No description yet."}
           </p>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="space-y-4 px-5 py-5">
-        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
-            <span>🗒</span>
-            Notion
-          </span>
-          {hasNotion ? (
-            <a
-              href={recipe.notionUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-slate-100 hover:text-white"
-            >
-              Open link
-            </a>
-          ) : (
-            <span className="text-slate-500">Notion not set</span>
-          )}
-        </div>
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-4 px-5 py-5"
+          >
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                <span>🗒</span>
+                Notion
+              </span>
+              {hasNotion ? (
+                <a
+                  href={recipe.notionUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-slate-100 hover:text-white"
+                >
+                  Open link
+                </a>
+              ) : (
+                <span className="text-slate-500">Notion not set</span>
+              )}
+            </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-white/10 pt-4">
-          <button
-            type="button"
-            onClick={() => onView(recipe.id)}
-            className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
-          >
-            View
-          </button>
-          <button
-            type="button"
-            onClick={() => onDelete(recipe.id)}
-            className="rounded-full bg-white/5 px-4 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/10"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-    </article>
+            {recipe.steps && recipe.steps.length > 0 && (
+              <div className="space-y-4">
+                <h4 className="text-lg font-semibold text-white">Steps</h4>
+                <div className={`grid gap-4 ${isTwoColumns ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
+                  {recipe.steps.map((step, index) => (
+                    <motion.div
+                      key={step.id ?? index}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1, duration: 0.2 }}
+                      className="rounded-3xl border border-white/10 bg-slate-950/70 p-4"
+                    >
+                      <div className="flex items-center justify-between gap-3 mb-2">
+                        <span className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                          Step {index + 1}
+                        </span>
+                      </div>
+                      <p className="text-slate-100 text-sm mb-3">{step.text}</p>
+                      {step.imageUrl && (
+                        <img
+                          src={step.imageUrl}
+                          alt={`Step ${index + 1}`}
+                          className="w-full rounded-3xl object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => onImageZoom(step.imageUrl!)}
+                        />
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between gap-3 border-t border-white/10 pt-4">
+              <button
+                type="button"
+                onClick={() => onView(recipe.id)}
+                className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
+              >
+                View full recipe
+              </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => onDelete(recipe.id)}
+                  className="rounded-full bg-white/5 px-4 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/10"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.article>
   );
 }
 
@@ -142,6 +203,7 @@ export default function RecipesPage() {
             recipe={recipe}
             onView={(id) => router.push(`/recipes/${id}`)}
             onDelete={deleteRecipe}
+            onImageZoom={setZoom}
           />
         ))}
       </div>
