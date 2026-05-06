@@ -11,17 +11,17 @@ type ApiRecipe = Recipe;
 
 function RecipeCard({
   recipe,
-  onView,
   onDelete,
+  onEdit,
   onImageZoom,
 }: {
   recipe: ApiRecipe;
-  onView: (id: string) => void;
   onDelete: (id: string) => void;
+  onEdit: (id: string) => void;
   onImageZoom: (src: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const hasNotion = Boolean(recipe.notionUrl?.trim());
+  const [menuOpen, setMenuOpen] = useState(false);
   const stepsCount = recipe.steps?.length || 0;
   const isTwoColumns = stepsCount > 3;
 
@@ -33,20 +33,17 @@ function RecipeCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
+      onClick={() => !expanded && setExpanded(true)}
     >
       <motion.div layout className="relative">
         {recipe.imageUrl ? (
           <img
             src={recipe.imageUrl}
             alt={recipe.title || "Recipe image"}
-            className="h-48 w-full object-cover cursor-pointer"
-            onClick={() => setExpanded(!expanded)}
+            className="h-48 w-full object-cover"
           />
         ) : (
-          <div
-            className="flex h-48 items-center justify-center bg-slate-950/80 text-slate-500 cursor-pointer"
-            onClick={() => setExpanded(!expanded)}
-          >
+          <div className="flex h-48 items-center justify-center bg-slate-950/80 text-slate-500">
             No cover image
           </div>
         )}
@@ -66,27 +63,16 @@ function RecipeCard({
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="space-y-4 px-5 py-5"
+            className="space-y-4 px-5 py-5 relative"
+            onClick={(e) => e.stopPropagation()} // Prevent collapsing when clicking inside
           >
-            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                <span>🗒</span>
-                Notion
-              </span>
-              {hasNotion ? (
-                <a
-                  href={recipe.notionUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-slate-100 hover:text-white"
-                >
-                  Open link
-                </a>
-              ) : (
-                <span className="text-slate-500">Notion not set</span>
-              )}
-            </div>
-
+            <button
+              type="button"
+              onClick={() => setExpanded(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition"
+            >
+              ✕
+            </button>
             {recipe.steps && recipe.steps.length > 0 && (
               <div className="space-y-4">
                 <h4 className="text-lg font-semibold text-white">Steps</h4>
@@ -109,7 +95,7 @@ function RecipeCard({
                         <img
                           src={step.imageUrl}
                           alt={`Step ${index + 1}`}
-                          className="w-full rounded-3xl object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                          className="w-full h-32 rounded-3xl object-cover cursor-pointer hover:opacity-80 transition-opacity"
                           onClick={() => onImageZoom(step.imageUrl!)}
                         />
                       )}
@@ -119,22 +105,40 @@ function RecipeCard({
               </div>
             )}
 
-            <div className="flex items-center justify-between gap-3 border-t border-white/10 pt-4">
-              <button
-                type="button"
-                onClick={() => onView(recipe.id)}
-                className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
-              >
-                View full recipe
-              </button>
+            <div className="flex items-center justify-end gap-3 border-t border-white/10 pt-4">
               <div className="relative">
                 <button
                   type="button"
-                  onClick={() => onDelete(recipe.id)}
-                  className="rounded-full bg-white/5 px-4 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/10"
+                  onClick={() => setMenuOpen((prev) => !prev)}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/80 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-900"
                 >
-                  Delete
+                  <span>⚙</span>
+                  Actions
                 </button>
+
+                {menuOpen && (
+                  <motion.div
+                    className="absolute right-0 top-full mt-3 w-44 overflow-hidden rounded-3xl border border-white/10 bg-slate-950/95 shadow-[var(--shadow)]"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => onEdit(recipe.id)}
+                      className="w-full px-4 py-3 text-left text-sm text-slate-100 transition hover:bg-white/5"
+                    >
+                      Edit recipe
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(recipe.id)}
+                      className="w-full px-4 py-3 text-left text-sm text-red-400 transition hover:bg-red-500/10"
+                    >
+                      Delete recipe
+                    </button>
+                  </motion.div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -201,7 +205,7 @@ export default function RecipesPage() {
           <RecipeCard
             key={recipe.id}
             recipe={recipe}
-            onView={(id) => router.push(`/recipes/${id}`)}
+            onEdit={(id) => router.push(`/recipes/${id}/edit`)}
             onDelete={deleteRecipe}
             onImageZoom={setZoom}
           />

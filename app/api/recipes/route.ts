@@ -29,7 +29,6 @@ export async function POST(req: Request) {
         title: body.title || "Untitled",
         description: body.description || "",
         imageUrl: body.imageUrl || "",
-        notionUrl: body.notionUrl ?? null,
 
         steps: {
           create: (body.steps ?? []).map((s: RecipeStep, i: number) => ({

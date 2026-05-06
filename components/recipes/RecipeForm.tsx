@@ -11,7 +11,6 @@ type Props = {
 export default function RecipeForm({ onSubmitAction, initialData }: Props) {
   const [title, setTitle] = useState(initialData?.title ?? "");
   const [description, setDescription] = useState(initialData?.description ?? "");
-  const [notionUrl, setNotionUrl] = useState(initialData?.notionUrl ?? "");
   const [imageUrl, setImageUrl] = useState<string | undefined>(
     initialData?.imageUrl
   );
@@ -48,10 +47,10 @@ export default function RecipeForm({ onSubmitAction, initialData }: Props) {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="grid gap-6 lg:grid-cols-[1.8fr_1fr]">
-        <div className="space-y-5 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[var(--shadow)]">
-          <div className="space-y-3">
+    <div className="space-y-6">
+      <div className="grid gap-5 lg:grid-cols-[1.8fr_1fr]">
+        <div className="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-5 shadow-[var(--shadow)]">
+          <div className="space-y-2">
             <label className="block text-sm font-semibold text-slate-200">
               Title
             </label>
@@ -71,19 +70,7 @@ export default function RecipeForm({ onSubmitAction, initialData }: Props) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Description"
-              className="w-full min-h-[140px] rounded-3xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-400/60 resize-none"
-            />
-          </div>
-
-          <div className="space-y-3">
-            <label className="block text-sm font-semibold text-slate-200">
-              Notion link
-            </label>
-            <input
-              value={notionUrl}
-              onChange={(e) => setNotionUrl(e.target.value)}
-              placeholder="https://www.notion.so/..."
-              className="w-full rounded-3xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-400/60"
+              className="w-full min-h-[110px] rounded-3xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-400/60 resize-none"
             />
           </div>
         </div>
@@ -109,10 +96,10 @@ export default function RecipeForm({ onSubmitAction, initialData }: Props) {
             <img
               src={imageUrl}
               alt={title || "Recipe image"}
-              className="h-[300px] w-full rounded-3xl object-cover"
+              className="h-[220px] w-full rounded-3xl object-cover"
             />
           ) : (
-            <div className="flex h-[300px] flex-col items-center justify-center gap-3 rounded-3xl bg-slate-950/60">
+            <div className="flex h-[220px] flex-col items-center justify-center gap-3 rounded-3xl bg-slate-950/60">
               <span className="text-sm text-slate-400">
                 Drop or click to add a cover image
               </span>
@@ -141,7 +128,7 @@ export default function RecipeForm({ onSubmitAction, initialData }: Props) {
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className={`${steps.length > 3 ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'space-y-4'}`}>
           {steps.map((step, index) => (
             <div
               key={index}
@@ -166,14 +153,14 @@ export default function RecipeForm({ onSubmitAction, initialData }: Props) {
                     updateStep(index, { ...step, text: e.target.value })
                   }
                   placeholder="Step description"
-                  className="min-h-[140px] w-full rounded-3xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-400/60 resize-none"
+                  className="min-h-[110px] w-full rounded-3xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-400/60 resize-none"
                 />
               </div>
 
               <div className="space-y-3">
                 <label className="text-sm text-slate-300">Step image</label>
                 <div
-                  className="relative flex h-[170px] items-center justify-center overflow-hidden rounded-3xl border border-dashed border-white/10 bg-slate-900/60 text-center text-sm text-slate-500 transition hover:border-indigo-400/30 cursor-pointer"
+                  className="relative flex h-[140px] items-center justify-center overflow-hidden rounded-3xl border border-dashed border-white/10 bg-slate-900/60 text-center text-sm text-slate-500 transition hover:border-indigo-400/30 cursor-pointer"
                   onClick={() =>
                     document
                       .getElementById(`step-image-${index}`)
@@ -225,19 +212,14 @@ export default function RecipeForm({ onSubmitAction, initialData }: Props) {
             onSubmitAction({
               title,
               description,
-              notionUrl,
               imageUrl,
               steps,
             })
           }
-          className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_18px_50px_rgba(52,211,153,0.2)] transition hover:bg-emerald-400"
+          className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_14px_35px_rgba(52,211,153,0.18)] transition hover:bg-emerald-400"
         >
           Save recipe
         </button>
-
-        <p className="text-sm text-slate-400">
-          The recipe creation theme stays dark and clean across the app.
-        </p>
       </div>
     </div>
   );

@@ -4,6 +4,9 @@ services:
     container_name: pro-postgres-1
     restart: always
 
+    ports:
+      - "5432:5432"
+
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: y198619

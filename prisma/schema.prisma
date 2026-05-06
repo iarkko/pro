@@ -12,7 +12,6 @@ model Recipe {
   title       String
   description String?
   imageUrl    String?
-  notionUrl   String?
   steps       Step[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

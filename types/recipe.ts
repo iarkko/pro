@@ -8,7 +8,6 @@ export type RecipeInput = {
   title: string;
   description: string;
   imageUrl?: string;
-  notionUrl?: string;
   steps: RecipeStep[];
 };
 

@@ -64,23 +64,6 @@ export default function RecipeViewPage() {
             </div>
 
             <p className="text-slate-300">{recipe.description}</p>
-
-            {recipe.notionUrl ? (
-              <a
-                href={recipe.notionUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/80 px-4 py-2 text-sm text-slate-100 transition hover:bg-slate-900"
-              >
-                <span>🗒</span>
-                Open Notion page
-              </a>
-            ) : (
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/80 px-4 py-2 text-sm text-slate-500">
-                <span>🗒</span>
-                No notion link
-              </div>
-            )}
           </div>
 
           <div className="relative">
