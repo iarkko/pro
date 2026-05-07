@@ -2,23 +2,23 @@ import Link from "next/link";
 
 export default function Sidebar() {
   const items = [
-    { label: "Home", href: "/" },
-    { label: "Projects", href: "/projects" },
-    { label: "Recipes", href: "/recipes" },
+    { label: "Home", href: "/", icon: "🏠" },
+    { label: "Projects", href: "/projects", icon: "📁" },
+    { label: "Recipes", href: "/recipes", icon: "🍲" },
   ];
 
   return (
-    <aside className="w-72 border-r border-white/10 bg-[#0A0F1C] p-6 flex flex-col justify-between">
+    <aside className="w-20 md:w-72 border-r border-white/10 bg-[#0A0F1C] p-3 md:p-6 flex flex-col justify-between">
 
       {/* TOP */}
       <div>
 
         {/* LOGO */}
-        <div className="flex items-center gap-3 mb-10">
+        <div className="mb-8 md:mb-10 flex items-center justify-center md:justify-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold">
             IG
           </div>
-          <div>
+          <div className="hidden md:block">
             <p className="font-semibold">Iaroslav Gritsenko</p>
             <p className="text-xs text-white/40">Fullstack Developer</p>
           </div>
@@ -30,9 +30,10 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className="px-3 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition"
+              className="flex items-center justify-center md:justify-start gap-2 px-2 md:px-3 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition"
             >
-              {item.label}
+              <span className="text-base">{item.icon}</span>
+              <span className="hidden md:inline">{item.label}</span>
             </Link>
           ))}
         </nav>
@@ -40,7 +41,7 @@ export default function Sidebar() {
       </div>
 
       {/* BOTTOM */}
-      <div className="text-xs text-white/30">
+      <div className="hidden md:block text-xs text-white/30">
         © {new Date().getFullYear()} IG Portfolio
       </div>
 

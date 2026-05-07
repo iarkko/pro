@@ -48,7 +48,7 @@ export default function RecipeForm({ onSubmitAction, initialData }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-5 lg:grid-cols-[1.8fr_1fr]">
+      <div className="grid grid-cols-[1fr_130px] gap-4 md:grid-cols-[1.6fr_1fr] lg:grid-cols-[1.8fr_1fr]">
         <div className="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-5 shadow-[var(--shadow)]">
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-slate-200">
@@ -76,7 +76,7 @@ export default function RecipeForm({ onSubmitAction, initialData }: Props) {
         </div>
 
         <div
-          className="relative rounded-3xl border border-dashed border-white/10 bg-white/5 p-4 text-center text-sm text-slate-300 transition hover:border-indigo-400/30"
+          className="relative rounded-3xl border border-dashed border-white/10 bg-white/5 p-3 text-center text-sm text-slate-300 transition hover:border-indigo-400/30"
           onClick={() => fileRef.current?.click()}
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
@@ -96,10 +96,10 @@ export default function RecipeForm({ onSubmitAction, initialData }: Props) {
             <img
               src={imageUrl}
               alt={title || "Recipe image"}
-              className="h-[220px] w-full rounded-3xl object-cover"
+              className="h-[140px] md:h-[170px] lg:h-[200px] w-full rounded-3xl object-cover"
             />
           ) : (
-            <div className="flex h-[220px] flex-col items-center justify-center gap-3 rounded-3xl bg-slate-950/60">
+            <div className="flex h-[140px] md:h-[170px] lg:h-[200px] flex-col items-center justify-center gap-2 rounded-3xl bg-slate-950/60 px-3">
               <span className="text-sm text-slate-400">
                 Drop or click to add a cover image
               </span>
@@ -153,14 +153,14 @@ export default function RecipeForm({ onSubmitAction, initialData }: Props) {
                     updateStep(index, { ...step, text: e.target.value })
                   }
                   placeholder="Step description"
-                  className="min-h-[110px] w-full rounded-3xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-400/60 resize-none"
+                  className="h-[120px] w-full rounded-3xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-400/60 resize-none"
                 />
               </div>
 
               <div className="space-y-3">
                 <label className="text-sm text-slate-300">Step image</label>
                 <div
-                  className="relative flex h-[140px] items-center justify-center overflow-hidden rounded-3xl border border-dashed border-white/10 bg-slate-900/60 text-center text-sm text-slate-500 transition hover:border-indigo-400/30 cursor-pointer"
+                  className="relative flex h-[120px] items-center justify-center overflow-hidden rounded-3xl border border-dashed border-white/10 bg-slate-900/60 text-center text-sm text-slate-500 transition hover:border-indigo-400/30 cursor-pointer"
                   onClick={() =>
                     document
                       .getElementById(`step-image-${index}`)
