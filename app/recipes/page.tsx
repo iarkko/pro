@@ -120,11 +120,20 @@ function RecipeDetailsDialog({
 }) {
   const visibleSteps = recipe.steps ?? [];
   const isTwoColumns = visibleSteps.length > 3;
+  const [detailsMenuOpen, setDetailsMenuOpen] = useState(false);
 
   return (
     <div className="fixed inset-0 z-40 overflow-hidden bg-slate-950/90 p-5 sm:p-8">
-      <div className="mx-auto flex h-full max-w-6xl flex-col overflow-hidden rounded-lg border border-white/10 bg-slate-950 shadow-[var(--shadow)]">
-        <div className="flex flex-col gap-4 border-b border-white/10 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+      <div className="relative mx-auto flex h-full max-w-6xl flex-col overflow-hidden rounded-lg border border-white/10 bg-slate-950 shadow-[var(--shadow)]">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 z-30 h-3.5 w-3.5 rounded-full bg-red-500 ring-4 ring-red-500/15 transition hover:bg-red-400"
+          aria-label="Close recipe"
+          title="Close"
+        />
+
+        <div className="flex flex-col gap-4 border-b border-white/10 px-5 py-4 pr-16 sm:flex-row sm:items-start sm:justify-between sm:px-6 sm:pr-20">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-teal-200">
               Recipe details
@@ -137,28 +146,42 @@ function RecipeDetailsDialog({
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="relative self-start">
             <button
               type="button"
-              onClick={() => onEdit(recipe)}
-              className="rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/5"
+              onClick={() => setDetailsMenuOpen((prev) => !prev)}
+              className="rounded-lg border border-white/10 bg-slate-950/70 px-3 py-2 text-lg leading-none text-slate-200 transition hover:bg-white/5"
+              aria-label="Recipe actions"
+              aria-expanded={detailsMenuOpen}
+              aria-haspopup="menu"
+              title="Recipe actions"
             >
-              Edit
+              ⚙
             </button>
-            <button
-              type="button"
-              onClick={() => onDelete(recipe.id)}
-              className="rounded-lg border border-red-400/30 px-4 py-2 text-sm font-semibold text-red-200 transition hover:bg-red-500/10"
-            >
-              Delete
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
-            >
-              Close
-            </button>
+
+            {detailsMenuOpen && (
+              <div
+                className="absolute right-0 top-full z-30 mt-2 w-44 overflow-hidden rounded-lg border border-white/10 bg-slate-950 shadow-[var(--shadow)]"
+                role="menu"
+              >
+                <button
+                  type="button"
+                  onClick={() => onEdit(recipe)}
+                  className="w-full px-4 py-3 text-left text-sm text-slate-100 transition hover:bg-white/5"
+                  role="menuitem"
+                >
+                  Edit recipe
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete(recipe.id)}
+                  className="w-full px-4 py-3 text-left text-sm text-red-300 transition hover:bg-red-500/10"
+                  role="menuitem"
+                >
+                  Delete recipe
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -556,8 +579,16 @@ export default function RecipesPage() {
 
       {isFormVisible && (
         <div className="no-scrollbar fixed inset-0 z-50 overflow-y-auto bg-slate-950/90 p-5 sm:p-8">
-          <div className="mx-auto max-w-6xl rounded-lg border border-white/10 bg-slate-950 p-5 shadow-[var(--shadow)] sm:p-6">
-            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative mx-auto max-w-6xl rounded-lg border border-white/10 bg-slate-950 p-5 shadow-[var(--shadow)] sm:p-6">
+            <button
+              type="button"
+              onClick={closeForm}
+              className="absolute right-4 top-4 h-3.5 w-3.5 rounded-full bg-red-500 ring-4 ring-red-500/15 transition hover:bg-red-400"
+              aria-label="Close recipe form"
+              title="Close"
+            />
+
+            <div className="mb-6 pr-10">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-teal-200">
                   {editingRecipe ? "Edit recipe" : "New recipe"}
@@ -568,13 +599,6 @@ export default function RecipesPage() {
                     : "Add cooking details"}
                 </h2>
               </div>
-              <button
-                type="button"
-                onClick={closeForm}
-                className="rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/5"
-              >
-                Close
-              </button>
             </div>
 
             <RecipeForm
