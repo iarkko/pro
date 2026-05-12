@@ -38,7 +38,7 @@ Thumbs.db
 
 # uploads (если не хочешь в git)
 public/uploads/
-uploads/
+/uploads/
 
 # local secrets and dumps
 keys

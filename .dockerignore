@@ -52,6 +52,7 @@ logs
 cache
 .tmp
 tmp
+uploads
 
 # =========================
 # OS files
