@@ -1,7 +1,8 @@
-# Recipe Book
+# Portfolio Site
 
-Next.js application for saving recipes with cover images, preparation steps,
-step photos, editing and deletion.
+Next.js portfolio site with subprojects. The main page is the top-level site;
+Recipe Book is one live subproject with cover images, preparation steps, step
+photos, editing and deletion.
 
 ## Local Development
 
@@ -10,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000/recipes`.
+Open `http://localhost:3000`.
 
 ## Database
 
