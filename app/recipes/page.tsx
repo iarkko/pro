@@ -7,40 +7,32 @@ import ImageModal from "@/components/ui/ImageModal";
 import type { Recipe, RecipeInput } from "@/types/recipe";
 
 type RecipeUiState = {
-  expandedRecipeId: string | null;
   openedMenuRecipeId: string | null;
 };
 
 function RecipeCard({
   recipe,
-  expanded,
   menuOpen,
-  onClose,
   onDelete,
   onEdit,
-  onImageZoom,
-  onToggleExpand,
+  onOpen,
   onToggleMenu,
 }: {
   recipe: Recipe;
-  expanded: boolean;
   menuOpen: boolean;
-  onClose: () => void;
   onDelete: (id: string) => void;
   onEdit: (recipe: Recipe) => void;
-  onImageZoom: (src: string) => void;
-  onToggleExpand: (id: string) => void;
+  onOpen: (id: string) => void;
   onToggleMenu: (id: string) => void;
 }) {
   const visibleSteps = recipe.steps ?? [];
-  const isTwoColumns = visibleSteps.length > 3;
 
   return (
     <article className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.04] transition hover:-translate-y-0.5 hover:border-teal-300/30">
       <button
         type="button"
         className="block w-full text-left"
-        onClick={() => onToggleExpand(recipe.id)}
+        onClick={() => onOpen(recipe.id)}
       >
         <div className="relative h-52 overflow-hidden bg-slate-950/70">
           {recipe.imageUrl ? (
@@ -109,77 +101,153 @@ function RecipeCard({
           )}
         </div>
       </div>
+    </article>
+  );
+}
 
-      {expanded && (
-        <div className="space-y-5 border-t border-white/10 px-5 py-5">
-          <div className="flex items-center justify-between gap-4">
-            <h3 className="text-lg font-semibold text-white">Preparation</h3>
+function RecipeDetailsDialog({
+  recipe,
+  onClose,
+  onDelete,
+  onEdit,
+  onImageZoom,
+}: {
+  recipe: Recipe;
+  onClose: () => void;
+  onDelete: (id: string) => void;
+  onEdit: (recipe: Recipe) => void;
+  onImageZoom: (src: string) => void;
+}) {
+  const visibleSteps = recipe.steps ?? [];
+  const isTwoColumns = visibleSteps.length > 3;
+
+  return (
+    <div className="fixed inset-0 z-40 overflow-hidden bg-slate-950/90 p-5 sm:p-8">
+      <div className="mx-auto flex h-full max-w-6xl flex-col overflow-hidden rounded-lg border border-white/10 bg-slate-950 shadow-[var(--shadow)]">
+        <div className="flex flex-col gap-4 border-b border-white/10 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-teal-200">
+              Recipe details
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-white">
+              {recipe.title}
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
+              {recipe.description || "No description yet."}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => onEdit(recipe)}
+              className="rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/5"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete(recipe.id)}
+              className="rounded-lg border border-red-400/30 px-4 py-2 text-sm font-semibold text-red-200 transition hover:bg-red-500/10"
+            >
+              Delete
+            </button>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-300 transition hover:bg-white/5"
+              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
             >
               Close
             </button>
           </div>
-
-          {recipe.imageUrl && (
-            <button
-              type="button"
-              onClick={() => onImageZoom(recipe.imageUrl)}
-              className="block w-full overflow-hidden rounded-lg border border-white/10"
-            >
-              <img
-                src={recipe.imageUrl}
-                alt={recipe.title}
-                className="max-h-96 w-full object-cover transition hover:opacity-90"
-              />
-            </button>
-          )}
-
-          {visibleSteps.length ? (
-            <div
-              className={`grid gap-4 ${
-                isTwoColumns ? "lg:grid-cols-2" : "grid-cols-1"
-              }`}
-            >
-              {visibleSteps.map((step, index) => (
-                <div
-                  key={step.id ?? index}
-                  className="rounded-lg border border-white/10 bg-slate-950/70 p-4"
-                >
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-200">
-                    Step {index + 1}
-                  </p>
-                  {step.text && (
-                    <p className="mt-3 text-sm leading-6 text-slate-100">
-                      {step.text}
-                    </p>
-                  )}
-                  {step.imageUrl && (
-                    <button
-                      type="button"
-                      onClick={() => onImageZoom(step.imageUrl!)}
-                      className="mt-4 block w-full overflow-hidden rounded-lg"
-                    >
-                      <img
-                        src={step.imageUrl}
-                        alt={`Step ${index + 1}`}
-                        className="h-44 w-full object-cover transition hover:opacity-90"
-                      />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="rounded-lg border border-white/10 bg-slate-950/70 p-4 text-sm text-slate-400">
-              No steps yet. Use Edit to add preparation details.
-            </p>
-          )}
         </div>
-      )}
-    </article>
+
+        <div className="no-scrollbar flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+          <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="space-y-4">
+              {recipe.imageUrl ? (
+                <button
+                  type="button"
+                  onClick={() => onImageZoom(recipe.imageUrl)}
+                  className="block w-full overflow-hidden rounded-lg border border-white/10 bg-slate-900"
+                >
+                  <img
+                    src={recipe.imageUrl}
+                    alt={recipe.title}
+                    className="max-h-[64vh] w-full object-cover transition hover:opacity-90"
+                  />
+                </button>
+              ) : (
+                <div className="flex min-h-72 items-center justify-center rounded-lg border border-white/10 bg-slate-900 text-sm text-slate-500">
+                  No cover image
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+                  <p className="text-2xl font-semibold text-white">
+                    {visibleSteps.length}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">Steps</p>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+                  <p className="text-2xl font-semibold text-white">
+                    {
+                      visibleSteps.filter((step) => Boolean(step.imageUrl))
+                        .length
+                    }
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">Step images</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              {visibleSteps.length ? (
+                <div
+                  className={`grid gap-4 ${
+                    isTwoColumns ? "xl:grid-cols-2" : "grid-cols-1"
+                  }`}
+                >
+                  {visibleSteps.map((step, index) => (
+                    <div
+                      key={step.id ?? index}
+                      className="rounded-lg border border-white/10 bg-slate-900/80 p-4"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-200">
+                        Step {index + 1}
+                      </p>
+                      {step.text && (
+                        <p className="mt-3 text-sm leading-6 text-slate-100">
+                          {step.text}
+                        </p>
+                      )}
+                      {step.imageUrl && (
+                        <button
+                          type="button"
+                          onClick={() => onImageZoom(step.imageUrl!)}
+                          className="mt-4 block w-full overflow-hidden rounded-lg"
+                        >
+                          <img
+                            src={step.imageUrl}
+                            alt={`Step ${index + 1}`}
+                            className="h-44 w-full object-cover transition hover:opacity-90"
+                          />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-lg border border-white/10 bg-slate-900/80 p-4 text-sm text-slate-400">
+                  No steps yet. Use Edit to add preparation details.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -189,11 +257,15 @@ export default function RecipesPage() {
   const [error, setError] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
   const [zoom, setZoom] = useState<string | null>(null);
   const [uiState, setUiState] = useState<RecipeUiState>({
-    expandedRecipeId: null,
     openedMenuRecipeId: null,
   });
+
+  const selectedRecipe = recipes.find(
+    (recipe) => recipe.id === selectedRecipeId
+  );
 
   const recipeCountLabel = useMemo(() => {
     if (recipes.length === 1) return "1 recipe";
@@ -217,13 +289,17 @@ export default function RecipesPage() {
   }, []);
 
   useEffect(() => {
-    const isModalOpen = formOpen || Boolean(editingRecipe) || Boolean(zoom);
+    const isModalOpen =
+      formOpen ||
+      Boolean(editingRecipe) ||
+      Boolean(selectedRecipe) ||
+      Boolean(zoom);
     document.body.style.overflow = isModalOpen ? "hidden" : "";
 
     return () => {
       document.body.style.overflow = "";
     };
-  }, [formOpen, editingRecipe, zoom]);
+  }, [formOpen, editingRecipe, selectedRecipe, zoom]);
 
   async function loadRecipes() {
     setLoading(true);
@@ -263,9 +339,9 @@ export default function RecipesPage() {
     setRecipes((prev) => [payload as Recipe, ...prev]);
     setFormOpen(false);
     setUiState({
-      expandedRecipeId: (payload as Recipe).id,
       openedMenuRecipeId: null,
     });
+    setSelectedRecipeId((payload as Recipe).id);
   }
 
   async function updateRecipe(id: string, data: RecipeInput) {
@@ -286,9 +362,9 @@ export default function RecipesPage() {
     setEditingRecipe(null);
     setFormOpen(false);
     setUiState({
-      expandedRecipeId: id,
       openedMenuRecipeId: null,
     });
+    setSelectedRecipeId(id);
   }
 
   async function deleteRecipe(id: string) {
@@ -311,11 +387,13 @@ export default function RecipesPage() {
 
     setRecipes((prev) => prev.filter((item) => item.id !== id));
     setUiState((prev) => ({
-      expandedRecipeId:
-        prev.expandedRecipeId === id ? null : prev.expandedRecipeId,
       openedMenuRecipeId:
         prev.openedMenuRecipeId === id ? null : prev.openedMenuRecipeId,
     }));
+
+    if (selectedRecipeId === id) {
+      setSelectedRecipeId(null);
+    }
 
     if (editingRecipe?.id === id) {
       setEditingRecipe(null);
@@ -324,11 +402,13 @@ export default function RecipesPage() {
 
   function openNewRecipeForm() {
     setEditingRecipe(null);
+    setSelectedRecipeId(null);
     setFormOpen(true);
     setUiState((prev) => ({ ...prev, openedMenuRecipeId: null }));
   }
 
   function openEditRecipeForm(recipe: Recipe) {
+    setSelectedRecipeId(null);
     setFormOpen(false);
     setEditingRecipe(recipe);
     setUiState((prev) => ({ ...prev, openedMenuRecipeId: null }));
@@ -339,11 +419,9 @@ export default function RecipesPage() {
     setEditingRecipe(null);
   }
 
-  function toggleExpand(id: string) {
-    setUiState((prev) => ({
-      expandedRecipeId: prev.expandedRecipeId === id ? null : id,
-      openedMenuRecipeId: null,
-    }));
+  function openRecipe(id: string) {
+    setSelectedRecipeId(id);
+    setUiState({ openedMenuRecipeId: null });
   }
 
   function toggleMenu(id: string) {
@@ -441,15 +519,10 @@ export default function RecipesPage() {
             <RecipeCard
               key={recipe.id}
               recipe={recipe}
-              expanded={uiState.expandedRecipeId === recipe.id}
               menuOpen={uiState.openedMenuRecipeId === recipe.id}
-              onClose={() =>
-                setUiState((prev) => ({ ...prev, expandedRecipeId: null }))
-              }
               onDelete={(id) => void deleteRecipe(id)}
               onEdit={openEditRecipeForm}
-              onImageZoom={setZoom}
-              onToggleExpand={toggleExpand}
+              onOpen={openRecipe}
               onToggleMenu={toggleMenu}
             />
           ))}
@@ -471,8 +544,18 @@ export default function RecipesPage() {
         </div>
       )}
 
+      {selectedRecipe && (
+        <RecipeDetailsDialog
+          recipe={selectedRecipe}
+          onClose={() => setSelectedRecipeId(null)}
+          onDelete={(id) => void deleteRecipe(id)}
+          onEdit={openEditRecipeForm}
+          onImageZoom={setZoom}
+        />
+      )}
+
       {isFormVisible && (
-        <div className="fixed inset-0 z-40 overflow-y-auto bg-slate-950/90 p-5 sm:p-8">
+        <div className="no-scrollbar fixed inset-0 z-50 overflow-y-auto bg-slate-950/90 p-5 sm:p-8">
           <div className="mx-auto max-w-6xl rounded-lg border border-white/10 bg-slate-950 p-5 shadow-[var(--shadow)] sm:p-6">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
