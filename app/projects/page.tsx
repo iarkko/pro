@@ -11,11 +11,11 @@ const projects = [
   },
   {
     title: "Todo App",
-    status: "Planned",
+    status: "Live",
     description:
-      "Рабочий подпроект для задач, приоритетов, фильтров и ежедневного планирования.",
-    tags: ["TypeScript", "State", "Product UX"],
-    href: "/projects",
+      "Отдельный подпроект для задач с приоритетами, сроками, выполнением, удалением и хранением в PostgreSQL.",
+    tags: ["Next.js", "Prisma", "PostgreSQL"],
+    href: "/todo",
   },
   {
     title: "DevOps Lab",

@@ -18,12 +18,25 @@ model Recipe {
 }
 
 model Step {
-  id         String   @id @default(cuid())
-  text       String
-  imageUrl   String?
-  stepOrder  Int
-  recipeId   String
-  recipe     Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  text      String
+  imageUrl  String?
+  stepOrder Int
+  recipeId  String
+  recipe    Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
   @@index([recipeId])
+}
+
+model TodoTask {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  priority    String    @default("medium")
+  completed   Boolean   @default(false)
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([completed, createdAt])
 }

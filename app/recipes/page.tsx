@@ -1,32 +1,18 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import RecipeForm from "@/components/recipes/RecipeForm";
 import ImageModal from "@/components/ui/ImageModal";
 import type { Recipe, RecipeInput } from "@/types/recipe";
 
-type RecipeUiState = {
-  openedMenuRecipeId: string | null;
-};
-
 function RecipeCard({
   recipe,
-  menuOpen,
-  onDelete,
-  onEdit,
   onOpen,
-  onToggleMenu,
 }: {
   recipe: Recipe;
-  menuOpen: boolean;
-  onDelete: (id: string) => void;
-  onEdit: (recipe: Recipe) => void;
   onOpen: (id: string) => void;
-  onToggleMenu: (id: string) => void;
 }) {
-  const visibleSteps = recipe.steps ?? [];
-
   return (
     <article className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.04] transition hover:-translate-y-0.5 hover:border-teal-300/30">
       <button
@@ -57,50 +43,6 @@ function RecipeCard({
           </div>
         </div>
       </button>
-
-      <div className="flex items-center justify-between gap-3 border-t border-white/10 px-5 py-4">
-        <span className="text-xs text-slate-500">
-          {visibleSteps.length} {visibleSteps.length === 1 ? "step" : "steps"}
-        </span>
-        <div className="relative">
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              onToggleMenu(recipe.id);
-            }}
-            className="rounded-lg border border-white/10 bg-slate-950/70 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-900"
-            aria-expanded={menuOpen}
-            aria-haspopup="menu"
-          >
-            Actions
-          </button>
-
-          {menuOpen && (
-            <div
-              className="absolute right-0 top-full z-20 mt-2 w-44 overflow-hidden rounded-lg border border-white/10 bg-slate-950 shadow-[var(--shadow)]"
-              role="menu"
-            >
-              <button
-                type="button"
-                onClick={() => onEdit(recipe)}
-                className="w-full px-4 py-3 text-left text-sm text-slate-100 transition hover:bg-white/5"
-                role="menuitem"
-              >
-                Edit recipe
-              </button>
-              <button
-                type="button"
-                onClick={() => onDelete(recipe.id)}
-                className="w-full px-4 py-3 text-left text-sm text-red-300 transition hover:bg-red-500/10"
-                role="menuitem"
-              >
-                Delete recipe
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
     </article>
   );
 }
@@ -123,17 +65,53 @@ function RecipeDetailsDialog({
   const [detailsMenuOpen, setDetailsMenuOpen] = useState(false);
 
   return (
-    <div className="fixed inset-0 z-40 overflow-hidden bg-slate-950/90 p-5 sm:p-8">
-      <div className="relative mx-auto flex h-full max-w-6xl flex-col overflow-hidden rounded-lg border border-white/10 bg-slate-950 shadow-[var(--shadow)]">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 z-30 h-3.5 w-3.5 rounded-full bg-red-500 ring-4 ring-red-500/15 transition hover:bg-red-400"
-          aria-label="Close recipe"
-          title="Close"
-        />
+    <div
+      className="fixed inset-0 z-40 overflow-hidden bg-slate-950/90 p-5 sm:p-8"
+      onClick={onClose}
+    >
+      <div
+        className="relative mx-auto flex h-full max-w-6xl flex-col overflow-hidden rounded-lg border border-white/10 bg-slate-950 shadow-[var(--shadow)]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="absolute right-4 top-4 z-30">
+          <button
+            type="button"
+            onClick={() => setDetailsMenuOpen((prev) => !prev)}
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-slate-950/80 text-lg leading-none text-slate-200 transition hover:bg-white/5"
+            aria-label="Recipe actions"
+            aria-expanded={detailsMenuOpen}
+            aria-haspopup="menu"
+            title="Recipe actions"
+          >
+            ⚙
+          </button>
 
-        <div className="flex flex-col gap-4 border-b border-white/10 px-5 py-4 pr-16 sm:flex-row sm:items-start sm:justify-between sm:px-6 sm:pr-20">
+          {detailsMenuOpen && (
+            <div
+              className="absolute right-0 top-full z-30 mt-2 w-44 overflow-hidden rounded-lg border border-white/10 bg-slate-950 shadow-[var(--shadow)]"
+              role="menu"
+            >
+              <button
+                type="button"
+                onClick={() => onEdit(recipe)}
+                className="w-full px-4 py-3 text-left text-sm text-slate-100 transition hover:bg-white/5"
+                role="menuitem"
+              >
+                Edit recipe
+              </button>
+              <button
+                type="button"
+                onClick={() => onDelete(recipe.id)}
+                className="w-full px-4 py-3 text-left text-sm text-red-300 transition hover:bg-red-500/10"
+                role="menuitem"
+              >
+                Delete recipe
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="border-b border-white/10 px-5 py-4 pr-16 sm:px-6 sm:pr-20">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-teal-200">
               Recipe details
@@ -144,44 +122,6 @@ function RecipeDetailsDialog({
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
               {recipe.description || "No description yet."}
             </p>
-          </div>
-
-          <div className="relative self-start">
-            <button
-              type="button"
-              onClick={() => setDetailsMenuOpen((prev) => !prev)}
-              className="rounded-lg border border-white/10 bg-slate-950/70 px-3 py-2 text-lg leading-none text-slate-200 transition hover:bg-white/5"
-              aria-label="Recipe actions"
-              aria-expanded={detailsMenuOpen}
-              aria-haspopup="menu"
-              title="Recipe actions"
-            >
-              ⚙
-            </button>
-
-            {detailsMenuOpen && (
-              <div
-                className="absolute right-0 top-full z-30 mt-2 w-44 overflow-hidden rounded-lg border border-white/10 bg-slate-950 shadow-[var(--shadow)]"
-                role="menu"
-              >
-                <button
-                  type="button"
-                  onClick={() => onEdit(recipe)}
-                  className="w-full px-4 py-3 text-left text-sm text-slate-100 transition hover:bg-white/5"
-                  role="menuitem"
-                >
-                  Edit recipe
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onDelete(recipe.id)}
-                  className="w-full px-4 py-3 text-left text-sm text-red-300 transition hover:bg-red-500/10"
-                  role="menuitem"
-                >
-                  Delete recipe
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
@@ -205,24 +145,6 @@ function RecipeDetailsDialog({
                   No cover image
                 </div>
               )}
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-                  <p className="text-2xl font-semibold text-white">
-                    {visibleSteps.length}
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">Steps</p>
-                </div>
-                <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-                  <p className="text-2xl font-semibold text-white">
-                    {
-                      visibleSteps.filter((step) => Boolean(step.imageUrl))
-                        .length
-                    }
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">Step images</p>
-                </div>
-              </div>
             </div>
 
             <div>
@@ -282,18 +204,10 @@ export default function RecipesPage() {
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
   const [zoom, setZoom] = useState<string | null>(null);
-  const [uiState, setUiState] = useState<RecipeUiState>({
-    openedMenuRecipeId: null,
-  });
 
   const selectedRecipe = recipes.find(
     (recipe) => recipe.id === selectedRecipeId
   );
-
-  const recipeCountLabel = useMemo(() => {
-    if (recipes.length === 1) return "1 recipe";
-    return `${recipes.length} recipes`;
-  }, [recipes.length]);
 
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("new") !== "1") {
@@ -361,9 +275,6 @@ export default function RecipesPage() {
 
     setRecipes((prev) => [payload as Recipe, ...prev]);
     setFormOpen(false);
-    setUiState({
-      openedMenuRecipeId: null,
-    });
     setSelectedRecipeId((payload as Recipe).id);
   }
 
@@ -384,9 +295,6 @@ export default function RecipesPage() {
     );
     setEditingRecipe(null);
     setFormOpen(false);
-    setUiState({
-      openedMenuRecipeId: null,
-    });
     setSelectedRecipeId(id);
   }
 
@@ -409,10 +317,6 @@ export default function RecipesPage() {
     }
 
     setRecipes((prev) => prev.filter((item) => item.id !== id));
-    setUiState((prev) => ({
-      openedMenuRecipeId:
-        prev.openedMenuRecipeId === id ? null : prev.openedMenuRecipeId,
-    }));
 
     if (selectedRecipeId === id) {
       setSelectedRecipeId(null);
@@ -427,14 +331,12 @@ export default function RecipesPage() {
     setEditingRecipe(null);
     setSelectedRecipeId(null);
     setFormOpen(true);
-    setUiState((prev) => ({ ...prev, openedMenuRecipeId: null }));
   }
 
   function openEditRecipeForm(recipe: Recipe) {
     setSelectedRecipeId(null);
     setFormOpen(false);
     setEditingRecipe(recipe);
-    setUiState((prev) => ({ ...prev, openedMenuRecipeId: null }));
   }
 
   function closeForm() {
@@ -444,14 +346,6 @@ export default function RecipesPage() {
 
   function openRecipe(id: string) {
     setSelectedRecipeId(id);
-    setUiState({ openedMenuRecipeId: null });
-  }
-
-  function toggleMenu(id: string) {
-    setUiState((prev) => ({
-      ...prev,
-      openedMenuRecipeId: prev.openedMenuRecipeId === id ? null : id,
-    }));
   }
 
   const activeFormAction = editingRecipe
@@ -495,35 +389,6 @@ export default function RecipesPage() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-white/10 bg-slate-950/60 p-4">
-            <p className="text-2xl font-semibold text-white">
-              {recipeCountLabel}
-            </p>
-            <p className="mt-1 text-xs text-slate-500">Saved in the database</p>
-          </div>
-          <div className="rounded-lg border border-white/10 bg-slate-950/60 p-4">
-            <p className="text-2xl font-semibold text-white">
-              {recipes.reduce(
-                (total, recipe) => total + (recipe.steps?.length ?? 0),
-                0
-              )}
-            </p>
-            <p className="mt-1 text-xs text-slate-500">Preparation steps</p>
-          </div>
-          <div className="rounded-lg border border-white/10 bg-slate-950/60 p-4">
-            <p className="text-2xl font-semibold text-white">
-              {
-                recipes.filter(
-                  (recipe) =>
-                    recipe.imageUrl ||
-                    recipe.steps?.some((step) => Boolean(step.imageUrl))
-                ).length
-              }
-            </p>
-            <p className="mt-1 text-xs text-slate-500">Recipes with images</p>
-          </div>
-        </div>
       </section>
 
       {error && (
@@ -542,11 +407,7 @@ export default function RecipesPage() {
             <RecipeCard
               key={recipe.id}
               recipe={recipe}
-              menuOpen={uiState.openedMenuRecipeId === recipe.id}
-              onDelete={(id) => void deleteRecipe(id)}
-              onEdit={openEditRecipeForm}
               onOpen={openRecipe}
-              onToggleMenu={toggleMenu}
             />
           ))}
         </div>
