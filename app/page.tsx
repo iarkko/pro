@@ -31,9 +31,9 @@ const projects = [
   {
     title: "Todo App",
     description:
-      "Планировщик задач с приоритетами, фильтрами и понятной моделью ежедневной работы.",
-    tags: ["TypeScript", "API", "Product"],
-    href: "/projects",
+      "Отдельная страница задач с приоритетами, сроками и хранением в PostgreSQL.",
+    tags: ["Next.js", "Prisma", "PostgreSQL"],
+    href: "/todo",
   },
   {
     title: "DevOps Lab",
