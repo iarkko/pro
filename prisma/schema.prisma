@@ -40,3 +40,40 @@ model TodoTask {
 
   @@index([completed, createdAt])
 }
+
+model AuthUser {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String?
+  passwordHash String
+  role         String        @default("reader")
+  canRead      Boolean       @default(true)
+  canCreate    Boolean       @default(false)
+  canDelete    Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  sessions     AuthSession[]
+}
+
+model AuthSession {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model GuestbookEntry {
+  id        String    @id @default(cuid())
+  name      String
+  message   String
+  source    String?
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  @@index([deletedAt, createdAt])
+}

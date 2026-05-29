@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
+import { hasPermission, requirePagePermission } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/prisma";
 import {
   createTodoTask,
@@ -45,6 +46,7 @@ function getPriorityMeta(priority: string) {
 }
 
 export default async function TodoPage() {
+  const user = await requirePagePermission("read", "/todo");
   await connection();
 
   const tasks = await prisma.todoTask.findMany({
@@ -56,6 +58,8 @@ export default async function TodoPage() {
   const highPriorityTasks = openTasks.filter(
     (task) => task.priority === "high"
   ).length;
+  const canCreate = hasPermission(user, "create");
+  const canDelete = hasPermission(user, "delete");
 
   return (
     <div className="space-y-8 pb-12">
@@ -94,65 +98,72 @@ export default async function TodoPage() {
           </div>
         </div>
 
-        <form
-          action={createTodoTask}
-          className="rounded-lg border border-white/10 bg-white/[0.04] p-5 shadow-[var(--shadow)] sm:p-6"
-        >
-          <div className="grid gap-4">
-            <label className="grid gap-2 text-sm font-medium text-slate-200">
-              Title
-              <input
-                name="title"
-                required
-                maxLength={120}
-                placeholder="Deploy Grafana dashboards"
-                className="rounded-lg border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-200/60"
-              />
-            </label>
-
-            <label className="grid gap-2 text-sm font-medium text-slate-200">
-              Description
-              <textarea
-                name="description"
-                rows={4}
-                maxLength={500}
-                placeholder="Short context, acceptance criteria or command notes"
-                className="min-h-28 resize-y rounded-lg border border-white/10 bg-slate-950/70 px-4 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-200/60"
-              />
-            </label>
-
-            <div className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        {canCreate ? (
+          <form
+            action={createTodoTask}
+            className="rounded-lg border border-white/10 bg-white/[0.04] p-5 shadow-[var(--shadow)] sm:p-6"
+          >
+            <div className="grid gap-4">
               <label className="grid gap-2 text-sm font-medium text-slate-200">
-                Priority
-                <select
-                  name="priority"
-                  defaultValue="medium"
-                  className="rounded-lg border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-200/60"
-                >
-                  <option value="high">High</option>
-                  <option value="medium">Medium</option>
-                  <option value="low">Low</option>
-                </select>
-              </label>
-
-              <label className="grid gap-2 text-sm font-medium text-slate-200">
-                Due date
+                Title
                 <input
-                  type="date"
-                  name="dueDate"
-                  className="rounded-lg border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-200/60"
+                  name="title"
+                  required
+                  maxLength={120}
+                  placeholder="Deploy Grafana dashboards"
+                  className="rounded-lg border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-200/60"
                 />
               </label>
 
-              <button
-                type="submit"
-                className="rounded-lg bg-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400"
-              >
-                Add task
-              </button>
+              <label className="grid gap-2 text-sm font-medium text-slate-200">
+                Description
+                <textarea
+                  name="description"
+                  rows={4}
+                  maxLength={500}
+                  placeholder="Short context, acceptance criteria or command notes"
+                  className="min-h-28 resize-y rounded-lg border border-white/10 bg-slate-950/70 px-4 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-200/60"
+                />
+              </label>
+
+              <div className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+                <label className="grid gap-2 text-sm font-medium text-slate-200">
+                  Priority
+                  <select
+                    name="priority"
+                    defaultValue="medium"
+                    className="rounded-lg border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-200/60"
+                  >
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+                </label>
+
+                <label className="grid gap-2 text-sm font-medium text-slate-200">
+                  Due date
+                  <input
+                    type="date"
+                    name="dueDate"
+                    className="rounded-lg border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-200/60"
+                  />
+                </label>
+
+                <button
+                  type="submit"
+                  className="rounded-lg bg-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400"
+                >
+                  Add task
+                </button>
+              </div>
             </div>
+          </form>
+        ) : (
+          <div className="rounded-lg border border-white/10 bg-white/[0.04] p-5 text-sm leading-6 text-slate-400 shadow-[var(--shadow)] sm:p-6">
+            У вашей учетной записи есть доступ на чтение задач, но нет права на
+            создание или изменение.
           </div>
-        </form>
+        )}
       </section>
 
       <section className="space-y-4">
@@ -199,32 +210,38 @@ export default async function TodoPage() {
                   )}
                 </div>
 
-                <div className="flex flex-wrap gap-2 lg:justify-end">
-                  <form action={toggleTodoTask}>
-                    <input type="hidden" name="id" value={task.id} />
-                    <input
-                      type="hidden"
-                      name="completed"
-                      value={String(!task.completed)}
-                    />
-                    <button
-                      type="submit"
-                      className="rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/5"
-                    >
-                      {task.completed ? "Reopen" : "Done"}
-                    </button>
-                  </form>
+                {(canCreate || canDelete) && (
+                  <div className="flex flex-wrap gap-2 lg:justify-end">
+                    {canCreate && (
+                      <form action={toggleTodoTask}>
+                        <input type="hidden" name="id" value={task.id} />
+                        <input
+                          type="hidden"
+                          name="completed"
+                          value={String(!task.completed)}
+                        />
+                        <button
+                          type="submit"
+                          className="rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/5"
+                        >
+                          {task.completed ? "Reopen" : "Done"}
+                        </button>
+                      </form>
+                    )}
 
-                  <form action={deleteTodoTask}>
-                    <input type="hidden" name="id" value={task.id} />
-                    <button
-                      type="submit"
-                      className="rounded-lg border border-red-300/20 px-4 py-2 text-sm font-semibold text-red-200 transition hover:bg-red-500/10"
-                    >
-                      Delete
-                    </button>
-                  </form>
-                </div>
+                    {canDelete && (
+                      <form action={deleteTodoTask}>
+                        <input type="hidden" name="id" value={task.id} />
+                        <button
+                          type="submit"
+                          className="rounded-lg border border-red-300/20 px-4 py-2 text-sm font-semibold text-red-200 transition hover:bg-red-500/10"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                )}
               </article>
             );
           })

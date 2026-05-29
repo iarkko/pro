@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { NextResponse } from "next/server";
+import { getApiUser } from "@/app/lib/api-auth";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = new Map([
@@ -16,6 +17,12 @@ const UPLOAD_DIR = path.join(
 );
 
 export async function POST(req: Request) {
+  const auth = await getApiUser("create");
+
+  if (auth.response) {
+    return auth.response;
+  }
+
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;

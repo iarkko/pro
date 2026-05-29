@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { requirePermission } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/prisma";
 
 const TODO_PATH = "/todo";
@@ -27,6 +28,8 @@ function getDueDate(value: FormDataEntryValue | null) {
 }
 
 export async function createTodoTask(formData: FormData) {
+  await requirePermission("create");
+
   const title = getString(formData.get("title"));
 
   if (!title) {
@@ -48,6 +51,8 @@ export async function createTodoTask(formData: FormData) {
 }
 
 export async function toggleTodoTask(formData: FormData) {
+  await requirePermission("create");
+
   const id = getString(formData.get("id"));
 
   if (!id) {
@@ -65,6 +70,8 @@ export async function toggleTodoTask(formData: FormData) {
 }
 
 export async function deleteTodoTask(formData: FormData) {
+  await requirePermission("delete");
+
   const id = getString(formData.get("id"));
 
   if (!id) {

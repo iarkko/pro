@@ -18,6 +18,14 @@ const projects = [
     href: "/todo",
   },
   {
+    title: "Guestbook Service",
+    status: "Live",
+    description:
+      "Публичная гостевая книга на отдельном HTTP-микросервисе с health, readiness и Prometheus-ready метриками.",
+    tags: ["Microservice", "Node.js", "Observability"],
+    href: "/guestbook",
+  },
+  {
     title: "DevOps Lab",
     status: "Planned",
     description:
@@ -44,7 +52,7 @@ export default function ProjectsPage() {
         </p>
       </section>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {projects.map((project) => (
           <article
             key={project.title}
