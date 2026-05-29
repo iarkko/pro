@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "guestbook:dev": "node services/guestbook/server.mjs",
+    "user:create": "node scripts/create-user.mjs"
   },
   "dependencies": {
     "next": "^16.2.6",

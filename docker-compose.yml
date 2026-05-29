@@ -36,6 +36,8 @@ services:
 
     environment:
       DATABASE_URL: postgresql://postgres:y198619@postgres:5432/postgres
+      GUESTBOOK_SERVICE_URL: http://guestbook:4001
+      GUESTBOOK_ADMIN_TOKEN: ${GUESTBOOK_ADMIN_TOKEN:-dev-guestbook-token}
 
     ports:
       - "127.0.0.1:3000:3000"
@@ -45,6 +47,32 @@ services:
 
     env_file:
       - .env
+
+  guestbook:
+    build:
+      context: .
+      dockerfile: services/guestbook/Dockerfile
+
+    container_name: pro-guestbook-1
+    restart: always
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      DATABASE_URL: postgresql://postgres:y198619@postgres:5432/postgres
+      GUESTBOOK_ADMIN_TOKEN: ${GUESTBOOK_ADMIN_TOKEN:-dev-guestbook-token}
+      PORT: 4001
+
+    ports:
+      - "127.0.0.1:4001:4001"
+
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:4001/readyz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
 
 volumes:
   postgres_data:

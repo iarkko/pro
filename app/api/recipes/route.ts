@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { getApiUser } from "@/app/lib/api-auth";
 import { prisma } from "@/app/lib/prisma";
 import type { RecipeInput, RecipeStep } from "@/types/recipe";
 
@@ -70,6 +71,12 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const auth = await getApiUser("create");
+
+  if (auth.response) {
+    return auth.response;
+  }
+
   try {
     const body = normalizeRecipeInput((await req.json()) as RecipeInput);
 

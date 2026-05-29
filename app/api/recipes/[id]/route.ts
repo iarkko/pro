@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
+import { getApiUser } from "@/app/lib/api-auth";
 import { prisma } from "@/app/lib/prisma";
 import type { RecipeInput, RecipeStep } from "@/types/recipe";
 
@@ -85,6 +86,12 @@ export async function PUT(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const auth = await getApiUser("create");
+
+  if (auth.response) {
+    return auth.response;
+  }
+
   const { id } = await context.params;
 
   try {
@@ -138,6 +145,12 @@ export async function DELETE(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const auth = await getApiUser("delete");
+
+  if (auth.response) {
+    return auth.response;
+  }
+
   const { id } = await context.params;
 
   try {
