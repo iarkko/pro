@@ -13,8 +13,12 @@ const navItems = [
   { label: "Projects", href: "/projects" },
   { label: "Todo", href: "/todo" },
   { label: "Recipes", href: "/recipes" },
+  { label: "Guestbook", href: "/guestbook" },
   { label: "DevOps Lab", href: "/#devops" },
+  { label: "Admin", href: "/admin/users" },
   { label: "About", href: "/#about" },
+  { label: "Register", href: "/register" },
+  { label: "Login", href: "/login" },
 ];
 
 export default function RootLayout({
