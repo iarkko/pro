@@ -17,6 +17,7 @@ const navItems = [
   { label: "DevOps Lab", href: "/#devops" },
   { label: "Admin", href: "/admin/users" },
   { label: "About", href: "/#about" },
+  { label: "Register", href: "/register" },
   { label: "Login", href: "/login" },
 ];
 

@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser, normalizeNextPath } from "@/app/lib/auth";
-import { login, logout } from "@/app/login/actions";
+import { register } from "./actions";
 
 export const metadata: Metadata = {
-  title: "Login | Iaroslav Gritsenko",
-  description: "Авторизация для управления подпроектами сайта.",
+  title: "Register | Iaroslav Gritsenko",
+  description: "Регистрация новой учетной записи для доступа к приватным разделам.",
 };
 
-type LoginPageProps = {
+type RegisterPageProps = {
   searchParams: Promise<{
     error?: string;
     next?: string;
@@ -16,12 +16,15 @@ type LoginPageProps = {
 };
 
 const errorMessages: Record<string, string> = {
-  forbidden: "У этой учетной записи нет нужного права для выбранного раздела.",
-  invalid: "Неверный email или пароль.",
-  missing: "Введите email и пароль.",
+  emailTaken: "Этот email уже зарегистрирован.",
+  missing: "Пожалуйста, заполните все поля.",
+  passwordMismatch: "Пароли не совпадают.",
+  short: "Пароль должен быть минимум 8 символов.",
 };
 
-export default async function LoginPage({ searchParams }: LoginPageProps) {
+export default async function RegisterPage({
+  searchParams,
+}: RegisterPageProps) {
   const params = await searchParams;
   const user = await getCurrentUser();
   const nextPath = normalizeNextPath(params.next ?? "/");
@@ -31,14 +34,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <div className="mx-auto max-w-xl space-y-6 pb-12">
       <section className="rounded-lg border border-white/10 bg-[#121a2e] p-6 shadow-[var(--shadow)] sm:p-8">
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-200">
-          Access
+          Register
         </p>
         <h1 className="mt-3 text-4xl font-semibold text-white">
-          Авторизация
+          Создать аккаунт
         </h1>
         <p className="mt-4 leading-7 text-slate-300">
-          Вход нужен для приватных разделов и операций создания, изменения и
-          удаления контента.
+          Зарегистрируйтесь, чтобы затем войти и получить доступ к приватным разделам.
         </p>
       </section>
 
@@ -50,44 +52,40 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
       {user ? (
         <section className="rounded-lg border border-white/10 bg-white/[0.04] p-6">
-          <p className="text-sm text-slate-400">Вы вошли как</p>
+          <p className="text-sm text-slate-400">Вы уже вошли как</p>
           <h2 className="mt-2 text-2xl font-semibold text-white">
             {user.name}
           </h2>
           <p className="mt-1 text-sm text-slate-500">{user.email}</p>
 
           <div className="mt-5 flex flex-wrap gap-2">
-            {Object.entries(user.permissions).map(([permission, enabled]) => (
-              <span
-                key={permission}
-                className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                  enabled
-                    ? "bg-emerald-300/10 text-emerald-100 ring-emerald-300/25"
-                    : "bg-white/5 text-slate-500 ring-white/10"
-                }`}
-              >
-                {permission}: {enabled ? "yes" : "no"}
-              </span>
-            ))}
-          </div>
-
-          <form action={logout} className="mt-6">
-            <button
-              type="submit"
-              className="rounded-lg border border-red-300/20 px-4 py-2 text-sm font-semibold text-red-200 transition hover:bg-red-500/10"
+            <Link
+              href="/"
+              className="rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/5"
             >
-              Logout
-            </button>
-          </form>
+              На главную
+            </Link>
+          </div>
         </section>
       ) : (
         <form
-          action={login}
+          action={register}
           className="rounded-lg border border-white/10 bg-white/[0.04] p-6 shadow-[var(--shadow)]"
         >
           <input type="hidden" name="next" value={nextPath} />
 
           <label className="grid gap-2 text-sm font-medium text-slate-200">
+            Имя
+            <input
+              name="name"
+              type="text"
+              autoComplete="name"
+              className="rounded-lg border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-200/60"
+              placeholder="Ваше имя"
+            />
+          </label>
+
+          <label className="mt-4 grid gap-2 text-sm font-medium text-slate-200">
             Email
             <input
               name="email"
@@ -100,12 +98,24 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </label>
 
           <label className="mt-4 grid gap-2 text-sm font-medium text-slate-200">
-            Password
+            Пароль
             <input
               name="password"
               type="password"
               required
-              autoComplete="current-password"
+              autoComplete="new-password"
+              className="rounded-lg border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-200/60"
+              placeholder="••••••••"
+            />
+          </label>
+
+          <label className="mt-4 grid gap-2 text-sm font-medium text-slate-200">
+            Повторите пароль
+            <input
+              name="confirmPassword"
+              type="password"
+              required
+              autoComplete="new-password"
               className="rounded-lg border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-200/60"
               placeholder="••••••••"
             />
@@ -115,16 +125,16 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             type="submit"
             className="mt-6 rounded-lg bg-[#5b8cff] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:bg-[#6f9cff]"
           >
-            Login
+            Зарегистрироваться
           </button>
 
           <p className="mt-4 text-sm text-slate-400">
-            Нет аккаунта?{" "}
+            Уже есть аккаунт?{" "}
             <Link
-              href={`/register?next=${encodeURIComponent(nextPath)}`}
+              href={`/login?next=${encodeURIComponent(nextPath)}`}
               className="font-semibold text-cyan-200 hover:text-white"
             >
-              Зарегистрироваться
+              Войти
             </Link>
           </p>
         </form>
