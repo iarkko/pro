@@ -34,12 +34,13 @@ function sendText(res, status, text, contentType = "text/plain; charset=utf-8") 
   res.end(text);
 }
 
-function publicEntry(entry) {
+function publicEntry(entry, currentUserId, isOwner = false) {
   return {
     id: entry.id,
     name: entry.name,
     message: entry.message,
     createdAt: entry.createdAt.toISOString(),
+    canDelete: isOwner || (currentUserId ? entry.createdById === currentUserId : false),
   };
 }
 
@@ -103,6 +104,13 @@ function isAdminRequest(req) {
 }
 
 async function handleMessages(req, res) {
+  const currentUserId =
+    typeof req.headers["x-guestbook-user-id"] === "string"
+      ? req.headers["x-guestbook-user-id"]
+      : null;
+  const isOwnerRequest =
+    String(req.headers["x-guestbook-user-role"] ?? "").toLowerCase() === "owner";
+
   if (req.method === "GET") {
     const entries = await prisma.guestbookEntry.findMany({
       where: {
@@ -120,7 +128,9 @@ async function handleMessages(req, res) {
     });
 
     sendJson(res, 200, {
-      entries: entries.map(publicEntry),
+      entries: entries.map((entry) =>
+        publicEntry(entry, currentUserId, isOwnerRequest)
+      ),
       total,
     });
     return;
@@ -129,6 +139,10 @@ async function handleMessages(req, res) {
   if (req.method === "POST") {
     const body = await readJson(req);
     const normalized = validateMessage(body);
+    const createdById =
+      typeof req.headers["x-guestbook-user-id"] === "string"
+        ? req.headers["x-guestbook-user-id"]
+        : null;
 
     if ("error" in normalized) {
       sendJson(res, 400, { error: normalized.error });
@@ -139,11 +153,12 @@ async function handleMessages(req, res) {
       data: {
         ...normalized,
         source: "portfolio-site",
+        createdById,
       },
     });
 
     counters.created += 1;
-    sendJson(res, 201, publicEntry(entry));
+    sendJson(res, 201, publicEntry(entry, currentUserId, isOwnerRequest));
     return;
   }
 
@@ -156,7 +171,16 @@ async function handleDelete(req, res, pathname) {
     return;
   }
 
-  if (!isAdminRequest(req)) {
+  const currentUserId =
+    typeof req.headers["x-guestbook-user-id"] === "string"
+      ? req.headers["x-guestbook-user-id"]
+      : null;
+  const isOwnerRequest =
+    String(req.headers["x-guestbook-user-role"] ?? "").toLowerCase() === "owner";
+  const hasUserContext = Boolean(currentUserId);
+  const allowAny = isOwnerRequest || (!hasUserContext && isAdminRequest(req));
+
+  if (!allowAny && !hasUserContext) {
     sendJson(res, 403, { error: "Forbidden" });
     return;
   }
@@ -168,15 +192,26 @@ async function handleDelete(req, res, pathname) {
     return;
   }
 
-  await prisma.guestbookEntry.updateMany({
-    where: {
-      id,
-      deletedAt: null,
-    },
+  const where = {
+    id,
+    deletedAt: null,
+  };
+
+  if (!allowAny) {
+    where.createdById = currentUserId;
+  }
+
+  const result = await prisma.guestbookEntry.updateMany({
+    where,
     data: {
       deletedAt: new Date(),
     },
   });
+
+  if (result.count === 0) {
+    sendJson(res, 403, { error: "Forbidden" });
+    return;
+  }
 
   counters.deleted += 1;
   sendJson(res, 200, { ok: true });

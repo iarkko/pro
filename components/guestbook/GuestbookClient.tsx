@@ -226,36 +226,40 @@ export default function GuestbookClient({ permissions }: Props) {
             Loading messages...
           </div>
         ) : entries.length ? (
-          entries.map((entry) => (
-            <article
-              key={entry.id}
-              className="rounded-lg border border-white/10 bg-white/[0.04] p-5"
-            >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-white">
-                    {entry.name}
-                  </h2>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {formatDate(entry.createdAt)}
-                  </p>
-                </div>
+          entries.map((entry) => {
+            const canDeleteEntry = canDelete && entry.canDelete;
 
-                {canDelete && (
-                  <button
-                    type="button"
-                    onClick={() => void deleteEntry(entry.id)}
-                    className="rounded-lg border border-red-300/20 px-3 py-2 text-sm font-semibold text-red-200 transition hover:bg-red-500/10"
-                  >
-                    Delete
-                  </button>
-                )}
-              </div>
-              <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-300">
-                {entry.message}
-              </p>
-            </article>
-          ))
+            return (
+              <article
+                key={entry.id}
+                className="rounded-lg border border-white/10 bg-white/[0.04] p-5 break-words"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
+                    <h2 className="text-lg font-semibold text-white break-words">
+                      {entry.name}
+                    </h2>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {formatDate(entry.createdAt)}
+                    </p>
+                  </div>
+
+                  {canDeleteEntry && (
+                    <button
+                      type="button"
+                      onClick={() => void deleteEntry(entry.id)}
+                      className="rounded-lg border border-red-300/20 px-3 py-2 text-sm font-semibold text-red-200 transition hover:bg-red-500/10"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
+                <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-6 text-slate-300">
+                  {entry.message}
+                </p>
+              </article>
+            );
+          })
         ) : (
           <div className="rounded-lg border border-dashed border-white/15 bg-white/[0.04] p-8 text-center">
             <h2 className="text-xl font-semibold text-white">

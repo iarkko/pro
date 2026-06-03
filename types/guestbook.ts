@@ -3,6 +3,7 @@ export type GuestbookEntry = {
   name: string;
   message: string;
   createdAt: string;
+  canDelete?: boolean;
 };
 
 export type GuestbookList = {
