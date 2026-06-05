@@ -68,12 +68,14 @@ model AuthSession {
 }
 
 model GuestbookEntry {
-  id        String    @id @default(cuid())
-  name      String
-  message   String
-  source    String?
-  createdAt DateTime  @default(now())
-  deletedAt DateTime?
+  id          String    @id @default(cuid())
+  name        String
+  message     String
+  source      String?
+  createdById String?
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
 
   @@index([deletedAt, createdAt])
+  @@index([createdById, deletedAt])
 }

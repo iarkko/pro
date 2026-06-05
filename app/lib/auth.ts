@@ -78,9 +78,7 @@ export async function verifyPassword(password: string, passwordHash: string) {
   const stored = Buffer.from(storedKey, "base64url");
   const derived = (await scrypt(password, salt, stored.length)) as Buffer;
 
-  return (
-    stored.length === derived.length && timingSafeEqual(stored, derived)
-  );
+  return stored.length === derived.length && timingSafeEqual(stored, derived);
 }
 
 function hashSessionToken(token: string) {
@@ -214,9 +212,7 @@ export async function requireOwnerPage(nextPath: string) {
   }
 
   if (!isOwner(user)) {
-    redirect(
-      `/login?error=forbidden&next=${encodeURIComponent(nextPath)}`
-    );
+    redirect(`/login?error=forbidden&next=${encodeURIComponent(nextPath)}`);
   }
 
   return user;
@@ -233,9 +229,7 @@ export async function requirePagePermission(
   }
 
   if (!hasPermission(user, permission)) {
-    redirect(
-      `/login?error=forbidden&next=${encodeURIComponent(nextPath)}`
-    );
+    redirect(`/login?error=forbidden&next=${encodeURIComponent(nextPath)}`);
   }
 
   return user;

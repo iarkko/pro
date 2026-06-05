@@ -19,9 +19,7 @@ export async function login(formData: FormData) {
   const nextPath = normalizeNextPath(formData.get("next"));
 
   if (!email || !password) {
-    redirect(
-      `/login?error=missing&next=${encodeURIComponent(nextPath)}`
-    );
+    redirect(`/login?error=missing&next=${encodeURIComponent(nextPath)}`);
   }
 
   const user = await prisma.authUser.findUnique({
@@ -31,9 +29,7 @@ export async function login(formData: FormData) {
   });
 
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
-    redirect(
-      `/login?error=invalid&next=${encodeURIComponent(nextPath)}`
-    );
+    redirect(`/login?error=invalid&next=${encodeURIComponent(nextPath)}`);
   }
 
   await createSession(user.id);

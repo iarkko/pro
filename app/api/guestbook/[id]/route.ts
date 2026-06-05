@@ -22,7 +22,11 @@ export async function DELETE(
       guestbookUrl(`/messages/${encodeURIComponent(id)}`),
       {
         method: "DELETE",
-        headers: guestbookAdminHeaders(),
+        headers: {
+          ...guestbookAdminHeaders(),
+          "x-guestbook-user-id": auth.user.id,
+          "x-guestbook-user-role": auth.user.role,
+        },
       }
     );
     const payload = await response.json();
